@@ -77,23 +77,25 @@ export class GeminiError extends Error {
 
 /**
  * Tries GEMINI_MODEL, then each model in GEMINI_FALLBACK_MODELS (comma-separated)
- * when a model is overloaded (503), rate-limited (429) or retired (404).
+ * when a model is overloaded (503), rate-limited (429), retired (404), erroring
+ * (500) or too slow (timeout). Lite models are the default: the tasks here are
+ * small classification prompts, and the big models are often overloaded.
  */
 export async function geminiJson<T>(prompt: string, schema: GeminiSchema): Promise<{ data: T; model: string }> {
   const models = [
-    env("GEMINI_MODEL", "gemini-3.5-flash"),
-    ...env("GEMINI_FALLBACK_MODELS", "gemini-flash-lite-latest").split(",").map((m) => m.trim()).filter(Boolean),
+    env("GEMINI_MODEL", "gemini-flash-lite-latest"),
+    ...env("GEMINI_FALLBACK_MODELS", "gemini-3.5-flash-lite,gemini-3.5-flash")
+      .split(",").map((m) => m.trim()).filter(Boolean),
   ];
-  let lastError: GeminiError | undefined;
+  let lastError: unknown;
   for (const model of [...new Set(models)]) {
     try {
       return await geminiJsonOnce<T>(model, prompt, schema);
     } catch (e) {
-      if (e instanceof GeminiError && [404, 429, 503].includes(e.status ?? 0)) {
-        lastError = e;
-        continue;
-      }
-      throw e;
+      const retryable = (e instanceof GeminiError && [404, 429, 500, 503].includes(e.status ?? 0)) ||
+        (e instanceof DOMException && (e.name === "TimeoutError" || e.name === "AbortError"));
+      if (!retryable) throw e;
+      lastError = e;
     }
   }
   throw lastError ?? new GeminiError("No Gemini model available");
@@ -114,7 +116,7 @@ async function geminiJsonOnce<T>(model: string, prompt: string, schema: GeminiSc
           responseSchema: schema,
         },
       }),
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(15_000),
     },
   );
   if (!res.ok) {
