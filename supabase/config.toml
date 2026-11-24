@@ -1,0 +1,74 @@
+# Supabase CLI config for local development (`supabase start`).
+# Only Bearch-specific settings are listed; the CLI uses defaults for the rest.
+# Secrets are NOT stored here: put GEMINI_API_KEY in supabase/functions/.env
+# (local) and `supabase secrets set GEMINI_API_KEY=...` (hosted).
+
+project_id = "bearch"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[realtime]
+enabled = true
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+# Local email catcher: OTP codes show up at http://127.0.0.1:54324
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "id.ac.uph.bearinvasion.bearch://login-callback"
+additional_redirect_urls = ["id.ac.uph.bearinvasion.bearch://login-callback"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+
+[auth.email]
+# UPH email + 6-digit OTP code (no passwords). Domain restriction is enforced
+# in the database (public.allowed_email_domains / handle_new_user trigger).
+enable_signup = true
+enable_confirmations = false
+otp_length = 6
+otp_expiry = 600
+max_frequency = "30s"
+
+[auth.email.template.magic_link]
+subject = "Your Bearch code"
+content_path = "./supabase/templates/otp.html"
+
+# First sign-in of a new user sends the confirmation template.
+[auth.email.template.confirmation]
+subject = "Your Bearch code"
+content_path = "./supabase/templates/otp.html"
+
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+
+[functions.infer-skills]
+verify_jwt = true
+
+[functions.check-duplicate]
+verify_jwt = true

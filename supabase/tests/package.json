@@ -1,0 +1,12 @@
+{
+  "name": "bearch-db-tests",
+  "private": true,
+  "type": "module",
+  "description": "Runs all Supabase migrations + seed on in-memory Postgres (PGlite) and checks the business rules.",
+  "scripts": {
+    "test": "node db_scenarios.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.7"
+  }
+}
