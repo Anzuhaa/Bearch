@@ -58,7 +58,7 @@ console.log('  seed ok');
 
 console.log('Auth');
 await expectErr('non-UPH email rejected', () => q(`insert into auth.users(email) values ('x@gmail.com')`), 'Only verified UPH');
-await q(`insert into public.admin_allowlist(email) values ('staff@uph.edu')`);
+await q(`insert into public.email_allowlist(email, role) values ('staff@uph.edu', 'admin'), ('judge@example.com', 'student')`);
 const mk = async (email, name) => (await one(`insert into auth.users(email, raw_user_meta_data) values ($1, $2) returning id`, [email, { full_name: name }])).id;
 const satria = await mk('satria.jagad@student.uph.edu', 'Satria Jagad Samudra');
 const josh = await mk('joshelius@student.uph.edu', 'Joshelius Joshua Kusno');
@@ -69,6 +69,8 @@ const angela = await mk('angela@student.uph.edu', 'Angela Lim');
 const admin = await mk('staff@uph.edu', 'Student Affairs');
 ok('admin role from allowlist', (await one(`select role from profiles where id=$1`, [admin])).role === 'admin');
 ok('student role default', (await one(`select role from profiles where id=$1`, [rizki])).role === 'student');
+const judge = await mk('judge@example.com', 'Judge');
+ok('allowlisted non-UPH email gets student role', (await one(`select role from profiles where id=$1`, [judge])).role === 'student');
 
 const major = async (n) => (await one(`select id from majors where name=$1`, [n])).id;
 const skill = async (n) => (await one(`select id from skills where name=$1`, [n])).id;

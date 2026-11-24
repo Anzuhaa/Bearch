@@ -35,10 +35,11 @@ create table public.allowed_email_domains (
   domain text primary key check (domain = lower(domain))
 );
 
--- Emails listed here become admins (Student Affairs) on first sign-in and may
--- bypass the domain check (useful for demo/judge accounts).
-create table public.admin_allowlist (
+-- Individual emails allowed to sign up regardless of domain, with the role they
+-- get on first sign-in. Used for Student Affairs admins and demo/judge accounts.
+create table public.email_allowlist (
   email text primary key check (email = lower(email)),
+  role public.user_role not null default 'student',
   note text,
   created_at timestamptz not null default now()
 );

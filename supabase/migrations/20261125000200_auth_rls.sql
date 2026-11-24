@@ -28,7 +28,7 @@ as $$
 $$;
 
 -- ---------------------------------------------------------------------------
--- New user -> profile (only UPH domains or allowlisted admins)
+-- New user -> profile (only UPH domains or allowlisted emails)
 -- ---------------------------------------------------------------------------
 create or replace function public.handle_new_user()
 returns trigger
@@ -38,11 +38,13 @@ set search_path = ''
 as $$
 declare
   v_email text := lower(coalesce(new.email, ''));
+  v_listed public.user_role;
   v_is_admin boolean;
 begin
-  v_is_admin := exists (select 1 from public.admin_allowlist a where a.email = v_email);
+  select a.role into v_listed from public.email_allowlist a where a.email = v_email;
+  v_is_admin := coalesce(v_listed = 'admin', false);
 
-  if not v_is_admin and not exists (
+  if v_listed is null and not exists (
     select 1 from public.allowed_email_domains d where d.domain = split_part(v_email, '@', 2)
   ) then
     raise exception 'Only verified UPH email accounts can join Bearch (@student.uph.edu or @uph.edu).'
@@ -124,7 +126,7 @@ $$;
 -- Enable RLS everywhere
 -- ---------------------------------------------------------------------------
 alter table public.allowed_email_domains enable row level security;
-alter table public.admin_allowlist enable row level security;
+alter table public.email_allowlist enable row level security;
 alter table public.majors enable row level security;
 alter table public.skills enable row level security;
 alter table public.profiles enable row level security;
@@ -164,7 +166,7 @@ grant select on all tables in schema public to authenticated;
 -- ---------------------------------------------------------------------------
 create policy "admins read domains" on public.allowed_email_domains
   for select to authenticated using (public.is_admin());
-create policy "admins read allowlist" on public.admin_allowlist
+create policy "admins read allowlist" on public.email_allowlist
   for select to authenticated using (public.is_admin());
 
 -- ---------------------------------------------------------------------------

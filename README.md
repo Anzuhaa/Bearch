@@ -38,7 +38,8 @@ supabase functions serve
 
 Hosted: `supabase link`, `supabase db push`, `supabase functions deploy infer-skills check-duplicate`,
 `supabase secrets set GEMINI_API_KEY=...`. Add Student Affairs accounts with
-`insert into admin_allowlist(email) values ('…@uph.edu');` before they first sign in.
+`insert into email_allowlist(email, role) values ('…@uph.edu', 'admin');` before they first sign in
+(demo/judge accounts: same table with role `student`; see `supabase/scripts/demo_accounts.mjs`).
 
 DB tests (no Docker):
 

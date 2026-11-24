@@ -70,6 +70,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _demoLogin(String email) async {
+    final client = ref.read(supabaseProvider);
+    if (client == null) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await client.auth.signInWithPassword(email: email, password: Env.demoPassword);
+    } catch (e) {
+      setState(() => _error = friendlyAuthError(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
@@ -170,6 +186,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
               ),
+              if (Env.demoLogin && Env.isConfigured) ...[
+                const SizedBox(height: 16),
+                GlassCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          const Pill('Demo', color: BearchColors.warning),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text('Hackathon demo accounts', style: t.titleSmall)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      for (final a in Env.demoAccounts)
+                        ListTile(
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          leading: InitialsAvatar(a.label, size: 32),
+                          title: Text(a.label),
+                          subtitle: Text(a.email),
+                          trailing: const Icon(Icons.login_rounded, size: 18),
+                          onTap: _busy ? null : () => _demoLogin(a.email),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),

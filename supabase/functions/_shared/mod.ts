@@ -75,9 +75,32 @@ export class GeminiError extends Error {
   }
 }
 
+/**
+ * Tries GEMINI_MODEL, then each model in GEMINI_FALLBACK_MODELS (comma-separated)
+ * when a model is overloaded (503), rate-limited (429) or retired (404).
+ */
 export async function geminiJson<T>(prompt: string, schema: GeminiSchema): Promise<{ data: T; model: string }> {
+  const models = [
+    env("GEMINI_MODEL", "gemini-3.5-flash"),
+    ...env("GEMINI_FALLBACK_MODELS", "gemini-flash-lite-latest").split(",").map((m) => m.trim()).filter(Boolean),
+  ];
+  let lastError: GeminiError | undefined;
+  for (const model of [...new Set(models)]) {
+    try {
+      return await geminiJsonOnce<T>(model, prompt, schema);
+    } catch (e) {
+      if (e instanceof GeminiError && [404, 429, 503].includes(e.status ?? 0)) {
+        lastError = e;
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw lastError ?? new GeminiError("No Gemini model available");
+}
+
+async function geminiJsonOnce<T>(model: string, prompt: string, schema: GeminiSchema): Promise<{ data: T; model: string }> {
   const key = env("GEMINI_API_KEY");
-  const model = env("GEMINI_MODEL", "gemini-2.5-flash");
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {

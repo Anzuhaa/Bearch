@@ -7,7 +7,7 @@ insert into public.allowed_email_domains (domain) values
 on conflict do nothing;
 
 -- Add Student Affairs / judge accounts here to make them admins on first sign-in:
--- insert into public.admin_allowlist (email, note) values ('someone@uph.edu', 'Student Affairs');
+-- insert into public.email_allowlist (email, role, note) values ('someone@uph.edu', 'admin', 'Student Affairs');
 
 insert into public.majors (name, faculty) values
   ('Informatics', 'Faculty of Computer Science'),
