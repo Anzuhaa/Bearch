@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/async_ui.dart';
+import '../../core/choice.dart';
 import '../../data/bearch_api.dart';
 import 'lobby_models.dart';
 import 'skills_picker_sheet.dart';
@@ -88,14 +89,11 @@ class _CreateLobbySheetState extends ConsumerState<_CreateLobbySheet> {
               decoration: const InputDecoration(labelText: 'Pitch (what you build, who you need)'),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<int>(
-              initialValue: _max,
-              decoration: const InputDecoration(labelText: 'Team size'),
-              items: [
-                for (var n = c.teamMin.clamp(1, c.teamMax); n <= c.teamMax; n++)
-                  DropdownMenuItem(value: n, child: Text('$n members')),
-              ],
-              onChanged: (v) => setState(() => _max = v ?? _max),
+            ChoiceGroup<int>(
+              label: 'Team size (max members)',
+              options: [for (var n = c.teamMin.clamp(1, c.teamMax); n <= c.teamMax; n++) (value: n, label: '$n')],
+              value: _max,
+              onChanged: (v) => setState(() => _max = v),
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,

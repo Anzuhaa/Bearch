@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/async_ui.dart';
+import '../../core/choice.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
 import '../../core/skeleton.dart';
@@ -10,12 +11,13 @@ import '../lobbies/lobby_models.dart';
 import '../lobbies/lobby_providers.dart';
 import '../lobbies/skills_picker_sheet.dart';
 import '../team/availability_sheet.dart';
+import 'major_picker_sheet.dart';
 
 typedef ProfileForm = ({String name, String? majorId, int? batch, Map<String, int> skills});
 
-final majorsProvider = FutureProvider<List<({String id, String name})>>((ref) async {
-  final rows = await ref.watch(supabaseProvider)!.from('majors').select('id, name').order('name');
-  return [for (final r in rows) (id: r['id'] as String, name: r['name'] as String)];
+final majorsProvider = FutureProvider<List<Major>>((ref) async {
+  final rows = await ref.watch(supabaseProvider)!.from('majors').select('id, name, faculty').order('name');
+  return [for (final r in rows) (id: r['id'] as String, name: r['name'] as String, faculty: r['faculty'] as String)];
 });
 
 final _profileFormProvider = FutureProvider.autoDispose<ProfileForm>((ref) async {
@@ -108,22 +110,29 @@ class _FormState extends ConsumerState<_Form> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           TextField(controller: _name, onChanged: (_) => setState(() {}), decoration: const InputDecoration(labelText: 'Full name')),
           const SizedBox(height: 10),
-          AsyncView<List<({String id, String name})>>(
+          AsyncView<List<Major>>(
             loading: const SkeletonPulse(child: SkeletonBox(height: 56, radius: 14)),
             value: ref.watch(majorsProvider),
-            data: (majors) => DropdownButtonFormField<String>(
-              initialValue: _major,
-              isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Study program'),
-              items: [for (final m in majors) DropdownMenuItem(value: m.id, child: Text(m.name))],
-              onChanged: (v) => setState(() => _major = v),
+            data: (majors) => InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () async {
+                final id = await pickMajor(context, majors: majors, selected: _major);
+                if (id != null) setState(() => _major = id);
+              },
+              child: InputDecorator(
+                decoration: const InputDecoration(labelText: 'Study program', suffixIcon: Icon(Icons.search_rounded)),
+                child: Text(majors.where((m) => m.id == _major).firstOrNull?.name ?? 'Choose your program'),
+              ),
             ),
           ),
-          const SizedBox(height: 10),
-          DropdownButtonFormField<int>(
-            initialValue: _batch,
-            decoration: const InputDecoration(labelText: 'Batch'),
-            items: [for (var y = year; y >= year - 7; y--) DropdownMenuItem(value: y, child: Text('$y'))],
+          const SizedBox(height: 12),
+          ChoiceGroup<int>(
+            label: 'Batch',
+            options: [
+              for (var y = year; y >= year - 4; y--) (value: y, label: '$y'),
+              if (_batch != null && _batch! < year - 4) (value: _batch!, label: '$_batch'),
+            ],
+            value: _batch,
             onChanged: (v) => setState(() => _batch = v),
           ),
         ]),

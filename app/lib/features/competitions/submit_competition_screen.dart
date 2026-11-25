@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/async_ui.dart';
+import '../../core/choice.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
 import '../../data/bearch_api.dart';
@@ -31,7 +32,7 @@ class _SubmitState extends ConsumerState<SubmitCompetitionScreen> {
   String _category = 'technology';
   String _level = 'campus';
   DateTime? _deadline;
-  int _min = 1, _max = 3;
+  int _min = 3, _max = 5; // most common team size
   PlatformFile? _file;
   bool _fileUploaded = false;
   String? _draftId;
@@ -134,28 +135,24 @@ class _SubmitState extends ConsumerState<SubmitCompetitionScreen> {
               const SizedBox(height: 10),
               TextFormField(controller: _organizer, validator: req, decoration: const InputDecoration(labelText: 'Organizer')),
               const SizedBox(height: 10),
-              Row(children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    initialValue: _category,
-                    decoration: const InputDecoration(labelText: 'Category'),
-                    items: [
-                      for (final e in competitionCategories.entries.where((e) => e.key != 'all'))
-                        DropdownMenuItem(value: e.key, child: Text(e.value, overflow: TextOverflow.ellipsis)),
-                    ],
-                    onChanged: (v) => setState(() => _category = v ?? _category),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    initialValue: _level,
-                    decoration: const InputDecoration(labelText: 'Level'),
-                    items: [for (final e in _levels.entries) DropdownMenuItem(value: e.key, child: Text(e.value))],
-                    onChanged: (v) => setState(() => _level = v ?? _level),
-                  ),
-                ),
-              ]),
+              ChoiceGroup<String>(
+                label: 'Category',
+                options: [
+                  for (final e in competitionCategories.entries.where((e) => e.key != 'all')) (value: e.key, label: e.value),
+                ],
+                value: _category,
+                onChanged: (v) => setState(() {
+                  _category = v;
+                  _check = null; // category is part of the duplicate check
+                }),
+              ),
+              const SizedBox(height: 12),
+              ChoiceGroup<String>(
+                label: 'Level',
+                options: [for (final e in _levels.entries) (value: e.key, label: e.value)],
+                value: _level,
+                onChanged: (v) => setState(() => _level = v),
+              ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
                 icon: const Icon(Icons.event_rounded),
@@ -172,18 +169,15 @@ class _SubmitState extends ConsumerState<SubmitCompetitionScreen> {
                 },
               ),
               const SizedBox(height: 10),
-              Row(children: [
-                Text('Team size', style: t.bodyMedium),
-                const Spacer(),
-                DropdownButton<int>(value: _min, items: [for (var n = 1; n <= 10; n++) DropdownMenuItem(value: n, child: Text('$n'))],
-                    onChanged: (v) => setState(() {
-                      _min = v!;
-                      if (_max < _min) _max = _min;
-                    })),
-                const Text('  –  '),
-                DropdownButton<int>(value: _max, items: [for (var n = _min; n <= 10; n++) DropdownMenuItem(value: n, child: Text('$n'))],
-                    onChanged: (v) => setState(() => _max = v!)),
-              ]),
+              TeamSizePicker(
+                min: _min,
+                max: _max,
+                onChanged: (lo, hi) => setState(() {
+                  _min = lo;
+                  _max = hi;
+                }),
+              ),
+              const SizedBox(height: 10),
               TextFormField(controller: _officialUrl, decoration: const InputDecoration(labelText: 'Official link (optional)')),
               const SizedBox(height: 10),
               TextFormField(controller: _description, minLines: 2, maxLines: 4, decoration: const InputDecoration(labelText: 'Short description')),

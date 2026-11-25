@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/async_ui.dart';
+import '../../core/choice.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
 import '../../core/skeleton.dart';
@@ -108,11 +109,11 @@ class _SepClaimSectionState extends ConsumerState<SepClaimSection> {
               ] else ...[
                 const Pill('Unlocked · requirements met', color: BearchColors.success, icon: Icons.lock_open_rounded),
                 const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  initialValue: _placement,
-                  decoration: const InputDecoration(labelText: 'Result / placement'),
-                  items: [for (final e in _placements.entries) DropdownMenuItem(value: e.key, child: Text(e.value))],
-                  onChanged: (v) => setState(() => _placement = v ?? _placement),
+                ChoiceGroup<String>(
+                  label: 'Result / placement',
+                  options: [for (final e in _placements.entries) (value: e.key, label: e.value)],
+                  value: _placement,
+                  onChanged: (v) => setState(() => _placement = v),
                 ),
                 const SizedBox(height: 10),
                 TextField(controller: _url, decoration: const InputDecoration(labelText: 'Announcement link (optional)')),

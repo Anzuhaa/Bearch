@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/async_ui.dart';
+import '../../core/choice.dart';
 import '../../core/session.dart';
 import '../../data/bearch_api.dart';
 import '../lobbies/lobby_models.dart';
@@ -79,37 +80,38 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
           value: ref.watch(myTeamsProvider),
           data: (teams) {
             // Opened from a team hub: preselect that team.
-            _team ??= teams.where((tm) => tm.id == widget.initialTeamId).firstOrNull;
+            _team ??= teams.where((tm) => tm.id == widget.initialTeamId).firstOrNull ?? (teams.length == 1 ? teams.first : null);
+            final others = _team?.members.where((m) => m.profileId != me).toList() ?? const <MemberView>[];
+            if (_member == null && others.length == 1) _member = others.first.profileId;
             return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Text('Report a member', style: t.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
             Text('Reports must be backed by concrete facts. False reports lower your own reputation.', style: t.bodySmall),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _team?.id,
-              isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Team & competition'),
-              items: [for (final tm in teams) DropdownMenuItem(value: tm.id, child: Text('${tm.name} · ${tm.competitionName}', overflow: TextOverflow.ellipsis))],
+            ChoiceGroup<String>(
+              label: 'Team',
+              options: [for (final tm in teams) (value: tm.id, label: tm.name)],
+              value: _team?.id,
               onChanged: (id) => setState(() {
                 _team = teams.firstWhere((tm) => tm.id == id);
                 _member = null;
               }),
             ),
+            if (_team != null) ...[
+              const SizedBox(height: 12),
+              ChoiceGroup<String>(
+                label: 'Member',
+                options: [for (final m in others) (value: m.profileId, label: m.fullName)],
+                value: _member,
+                onChanged: (v) => setState(() => _member = v),
+              ),
+            ],
             const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              key: ValueKey(_team?.id),
-              initialValue: _member,
-              decoration: const InputDecoration(labelText: 'Member'),
-              items: [
-                for (final m in _team?.members.where((m) => m.profileId != me) ?? const <MemberView>[])
-                  DropdownMenuItem(value: m.profileId, child: Text(m.fullName)),
-              ],
-              onChanged: (v) => setState(() => _member = v),
+            ChoiceGroup<String>(
+              label: 'Reason',
+              options: [for (final r in _reasons) (value: r, label: reasonLabel(r))],
+              value: _reason,
+              onChanged: (v) => setState(() => _reason = v),
             ),
-            const SizedBox(height: 10),
-            Wrap(spacing: 8, runSpacing: 8, children: [
-              for (final r in _reasons)
-                ChoiceChip(label: Text(reasonLabel(r)), selected: _reason == r, onSelected: (_) => setState(() => _reason = r)),
-            ]),
             const SizedBox(height: 10),
             TextField(
               controller: _facts,

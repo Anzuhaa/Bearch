@@ -28,6 +28,7 @@ class _SkillsPicker extends ConsumerStatefulWidget {
 
 class _SkillsPickerState extends ConsumerState<_SkillsPicker> {
   late final Set<String> _selected = {...widget.initial};
+  String _q = '';
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +44,11 @@ class _SkillsPickerState extends ConsumerState<_SkillsPicker> {
               Text(widget.title, style: t.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
               Text('${_selected.length} selected', style: t.bodySmall),
+              const SizedBox(height: 8),
+              TextField(
+                onChanged: (v) => setState(() => _q = v.trim().toLowerCase()),
+                decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: 'Search skills'),
+              ),
               Expanded(
                 child: AsyncView<List<SkillOption>>(
                   loading: const SkeletonList(count: 2, lines: 2),
@@ -56,7 +62,7 @@ class _SkillsPickerState extends ConsumerState<_SkillsPicker> {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            for (final s in skills.where((s) => s.kind == kind))
+                            for (final s in skills.where((s) => s.kind == kind && (_q.isEmpty || s.name.toLowerCase().contains(_q))))
                               FilterChip(
                                 label: Text(s.name),
                                 selected: _selected.contains(s.id),
