@@ -212,7 +212,12 @@ await as(satria, async () => {
   await expectErr('criteria validated', () => q(`select public.submit_rating($1,$2,'[]','{"communication":5}')`, [t3, rizki]), 'stars');
   await q(`select public.submit_rating($1,$2,$3,$4,'great')`, [t3, rizki, JSON.stringify([{ skill_id: await skill('Data Analysis'), tier: 4 }]), JSON.stringify(crit)]);
   ok('rating progress', (await q(`select * from public.my_rating_progress($1)`, [t3]))[0].rated === true);
+  await q(`insert into storage.objects(bucket_id, name) values ('sep-proofs', $1::text || '/certificate.pdf')`, [t3]);
+  ok('result upload allowed after rating all teammates', true);
 });
+await as(rizki, () => expectErr('result upload blocked until ratings are submitted',
+  () => q(`insert into storage.objects(bucket_id, name) values ('sep-proofs', $1::text || '/x.pdf')`, [t3]), 'row-level security'));
+ok('portfolio/linkedin columns removed (Phase 2)', (await one(`select count(*)::int c from information_schema.columns where table_name='profiles' and column_name in ('portfolio_url','linkedin_url')`)).c === 0);
 ok('reputation = 4.5', Number((await one(`select reputation from profiles where id=$1`, [rizki])).reputation) === 4.5);
 ok('peer level updated', Number((await one(`select peer_level from profile_skills where profile_id=$1 and skill_id=$2`, [rizki, await skill('Data Analysis')])).peer_level) === 4);
 await as(rizki, async () => ok('ratee cannot read rating rows', (await q(`select * from peer_ratings`)).length === 0));
@@ -231,7 +236,9 @@ await as(satria, async () => {
   ok('no blockers now', (await one(`select public.sep_claim_blockers($1) b`, [t3])).b.length === 0);
   const c = (await one(`select public.submit_sep_claim($1,'winner_1','1st Place','https://x') id`, [t3])).id;
   ok('estimate from rules (national winner = 100)', (await one(`select estimated_points from sep_claims where id=$1`, [c])).estimated_points === 100);
+  ok('UPH Mobile sync not_synced before verify', (await one(`select uph_mobile_sync_status s from sep_claims where id=$1`, [c])).s === 'not_synced');
   await as(admin, () => q(`select public.admin_verify_sep_claim($1,true)`, [c]));
+  ok('UPH Mobile sync queued (pending) after verify', (await one(`select uph_mobile_sync_status s from sep_claims where id=$1`, [c])).s === 'pending');
 });
 const stats = await as(admin, async () => (await one(`select public.admin_dashboard_stats() s`)).s);
 console.log('    stats:', stats);

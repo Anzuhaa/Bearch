@@ -8,7 +8,8 @@ import '../core/env.dart';
 import '../core/glass.dart';
 import '../core/session.dart';
 import '../core/theme.dart';
-import '../router.dart';
+import '../core/theme_mode.dart';
+import 'nav_items.dart';
 
 /// Mobile adaptation of the Figma sidebar: app bar + glass navigation drawer.
 class AppShell extends ConsumerWidget {
@@ -26,6 +27,7 @@ class AppShell extends ConsumerWidget {
         appBar: AppBar(
           title: Text(item?.label ?? 'Bearch'),
           actions: [
+            const ThemeToggleButton(),
             IconButton(
               tooltip: 'Notifications',
               onPressed: () {},

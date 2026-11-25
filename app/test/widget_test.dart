@@ -50,6 +50,21 @@ void main() {
     expect(navItemFor('/browse/abc')?.label, 'Browse Competitions');
   });
 
+  testWidgets('theme toggle switches light -> dark', (tester) async {
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    await tester.pumpWidget(const ProviderScope(child: BearchApp()));
+    await tester.pumpAndSettle();
+    Brightness current() => Theme.of(tester.element(find.text('Browse Competitions'))).brightness;
+    expect(current(), Brightness.light);
+
+    await tester.tap(find.byTooltip('Switch to dark mode'));
+    await tester.pumpAndSettle();
+    expect(current(), Brightness.dark);
+    expect(find.byTooltip('Switch to light mode'), findsOneWidget);
+  });
+
   testWidgets('dark theme builds', (tester) async {
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);

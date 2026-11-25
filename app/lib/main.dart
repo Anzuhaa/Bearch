@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/env.dart';
 import 'core/theme.dart';
+import 'core/theme_mode.dart';
 import 'router.dart';
 
 Future<void> main() async {
@@ -24,7 +25,9 @@ class BearchApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: buildBearchTheme(Brightness.light),
       darkTheme: buildBearchTheme(Brightness.dark),
-      themeMode: ThemeMode.system,
+      themeMode: ref.watch(themeModeProvider),
+      themeAnimationDuration: const Duration(milliseconds: 300),
+      themeAnimationCurve: Curves.easeInOut,
       routerConfig: ref.watch(routerProvider),
     );
   }

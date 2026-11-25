@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/glass.dart';
 import '../core/theme.dart';
-import '../router.dart';
+import '../shell/nav_items.dart';
 
 /// Stand-in for screens not built yet. Shows the Figma frames to follow and
 /// the backend contract (RPCs / tables / functions) the screen should use.

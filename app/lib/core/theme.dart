@@ -5,8 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 abstract final class BearchColors {
   static const accent = Color(0xFF0071E3);
   static const lightBackground = Color(0xFFF5F5F7);
-  static const darkBackground = Color(0xFF000000);
-  static const darkSurface = Color(0xFF1C1C1E);
+  static const darkBackground = Color(0xFF0F172A); // dark slate
+  static const darkSurface = Color(0xFF1E293B);
   static const success = Color(0xFF34C759);
   static const warning = Color(0xFFFF9500);
   static const danger = Color(0xFFFF3B30);
@@ -35,19 +35,21 @@ class GlassTokens extends ThemeExtension<GlassTokens> {
   static GlassTokens of(BuildContext context) => Theme.of(context).extension<GlassTokens>()!;
 
   static const light = GlassTokens(
-    fill: Color(0xA6FFFFFF),
+    fill: Color(0xD9FFFFFF),
     border: Color(0x99FFFFFF),
-    blur: 24,
+    blur: 16,
     shadow: Color(0x14000000),
-    blobs: [Color(0x553D9BFF), Color(0x40AF52DE), Color(0x3364D2FF)],
+    // Soft blue-tinted glow: rgba(0,113,227,.08-.15) / rgba(59,130,246,.15).
+    blobs: [Color(0x260071E3), Color(0x263B82F6), Color(0x140071E3)],
   );
 
   static const dark = GlassTokens(
-    fill: Color(0x991C1C1E),
+    fill: Color(0xD91E293B),
     border: Color(0x1FFFFFFF),
-    blur: 24,
+    blur: 16,
     shadow: Color(0x66000000),
-    blobs: [Color(0x400071E3), Color(0x33AF52DE), Color(0x2664D2FF)],
+    // Deep azure glow on dark slate.
+    blobs: [Color(0x400071E3), Color(0x333B82F6), Color(0x260071E3)],
   );
 
   @override
@@ -126,7 +128,8 @@ ThemeData buildBearchTheme(Brightness brightness) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: isDark ? const Color(0x14FFFFFF) : const Color(0xCCFFFFFF),
+      // Inputs stay opaque for contrast (no washed-out text on glass).
+      fillColor: isDark ? BearchColors.darkSurface : Colors.white,
       border: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide.none),
       enabledBorder: OutlineInputBorder(
         borderRadius: radius,
