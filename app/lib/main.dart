@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/env.dart';
+import 'core/local_cache.dart';
 import 'core/theme.dart';
 import 'core/theme_mode.dart';
 import 'core/theme_reveal.dart';
@@ -17,6 +18,7 @@ Future<void> main() async {
   if (Env.isConfigured) {
     await Supabase.initialize(url: Env.supabaseUrl, publishableKey: Env.supabaseKey);
   }
+  await LocalCache.init();
   await _preloadMontserrat();
   runApp(const ProviderScope(child: BearchApp()));
 }

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'core/local_cache.dart';
 import 'core/session.dart';
 import 'features/admin/admin_dashboard_screen.dart';
 import 'features/admin/competition_queue_screen.dart';
@@ -73,7 +74,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (client == null) return atAuth || loc == '/home' ? '/browse' : null; // preview mode: no auth
       final signedIn = client.auth.currentSession != null;
       if (!signedIn) return atAuth ? null : '/login';
-      if (atAuth) return '/home'; // HomeRedirect sends admins to /admin, students to /browse
+      // Returning user: we already know their role on this device, so open the right
+      // screen on the first frame instead of waiting ~0.4s for the profile request.
+      if (atAuth || loc == '/home') {
+        final role = LocalCache.roleFor(client.auth.currentUser!.id);
+        if (role != null) return role == 'admin' ? '/admin' : '/browse';
+        return atAuth ? '/home' : null; // first sign-in on this device: HomeRedirect resolves it
+      }
       return null;
     },
     routes: [

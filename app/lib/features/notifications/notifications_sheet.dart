@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -65,12 +67,7 @@ class NotificationBell extends ConsumerWidget {
     final unread = ref.watch(unreadCountProvider);
     return IconButton(
       tooltip: unread == 0 ? 'Notifications' : 'Notifications, $unread unread',
-      onPressed: () => showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        showDragHandle: true,
-        builder: (_) => const _NotificationsSheet(),
-      ).then((_) => ref.invalidate(notificationsProvider)),
+      onPressed: () => Scaffold.of(context).openEndDrawer(),
       icon: Badge(
         isLabelVisible: unread > 0,
         label: Text('$unread'),
@@ -80,8 +77,9 @@ class NotificationBell extends ConsumerWidget {
   }
 }
 
-class _NotificationsSheet extends ConsumerWidget {
-  const _NotificationsSheet();
+/// Right-side glass drawer (swipe in from the right edge, or tap the bell).
+class NotificationsDrawer extends ConsumerWidget {
+  const NotificationsDrawer({super.key});
 
   Future<void> _markRead(WidgetRef ref, {String? id}) async {
     final db = ref.read(supabaseProvider);
@@ -93,59 +91,70 @@ class _NotificationsSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = Theme.of(context).textTheme;
-    return SafeArea(
-      child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * 0.75,
-        child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              Expanded(child: Text('Notifications', style: t.titleLarge?.copyWith(fontWeight: FontWeight.w700))),
-              TextButton(
-                onPressed: () async {
-                  await _markRead(ref);
-                  ref.invalidate(notificationsProvider);
-                },
-                child: const Text('Mark all read'),
-              ),
-            ]),
-          ),
-          Expanded(
-            child: AsyncView<List<AppNotification>>(
-              loading: const Padding(padding: EdgeInsets.all(16), child: SkeletonList(count: 4, lines: 1, avatar: true)),
-              value: ref.watch(notificationsProvider),
-              onRetry: () => ref.invalidate(notificationsProvider),
-              data: (list) => list.isEmpty
-                  ? Center(child: Text('You\'re all caught up.', style: t.bodyMedium))
-                  : ListView.separated(
-                      itemCount: list.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
-                      itemBuilder: (context, i) {
-                        final n = list[i];
-                        final warn = n.kind == 'lock_warning' || n.kind.contains('rejected');
-                        return ListTile(
-                          leading: Icon(
-                            warn ? Icons.notifications_active_rounded : Icons.notifications_rounded,
-                            color: n.read ? Colors.grey : (warn ? BearchColors.warning : BearchColors.accent),
-                          ),
-                          title: Text(n.title, style: TextStyle(fontWeight: n.read ? FontWeight.w500 : FontWeight.w700)),
-                          subtitle: Text('${n.body}\n${formatDate(n.createdAt)}'),
-                          isThreeLine: true,
-                          onTap: () async {
-                            await _markRead(ref, id: n.id);
-                            final route = _routeFor(n);
-                            if (!context.mounted) return;
-                            Navigator.pop(context);
-                            // Detail pages stack on top; drawer destinations replace (keeps shell title right).
-                            if (route == null) return;
-                            route.startsWith('/team/') ? context.push(route) : context.go(route);
-                          },
-                        );
+    final glass = GlassTokens.of(context);
+    return Drawer(
+      width: 320,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.horizontal(left: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Material(
+            color: glass.fill,
+            shape: Border(left: BorderSide(color: glass.border)),
+            child: SafeArea(
+              child: Column(children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 8, 4),
+                  child: Row(children: [
+                    Expanded(child: Text('Notifications', style: t.titleLarge?.copyWith(fontWeight: FontWeight.w700))),
+                    TextButton(
+                      onPressed: () async {
+                        await _markRead(ref);
+                        ref.invalidate(notificationsProvider);
                       },
+                      child: const Text('Mark all read'),
                     ),
+                  ]),
+                ),
+                Expanded(
+                  child: AsyncView<List<AppNotification>>(
+                    loading: const Padding(padding: EdgeInsets.all(16), child: SkeletonList(count: 4, lines: 1, avatar: true)),
+                    value: ref.watch(notificationsProvider),
+                    onRetry: () => ref.invalidate(notificationsProvider),
+                    data: (list) => list.isEmpty
+                        ? Center(child: Text('You\'re all caught up.', style: t.bodyMedium))
+                        : ListView.separated(
+                            itemCount: list.length,
+                            separatorBuilder: (_, _) => const Divider(height: 1),
+                            itemBuilder: (context, i) {
+                              final n = list[i];
+                              final warn = n.kind == 'lock_warning' || n.kind.contains('rejected');
+                              return ListTile(
+                                leading: Icon(
+                                  warn ? Icons.notifications_active_rounded : Icons.notifications_rounded,
+                                  color: n.read ? Colors.grey : (warn ? BearchColors.warning : BearchColors.accent),
+                                ),
+                                title: Text(n.title, style: TextStyle(fontWeight: n.read ? FontWeight.w500 : FontWeight.w700)),
+                                subtitle: Text('${n.body}\n${formatDate(n.createdAt)}'),
+                                isThreeLine: true,
+                                onTap: () async {
+                                  await _markRead(ref, id: n.id);
+                                  final route = _routeFor(n);
+                                  if (!context.mounted) return;
+                                  Scaffold.of(context).closeEndDrawer();
+                                  // Detail pages stack on top; drawer destinations replace (keeps shell title right).
+                                  if (route == null) return;
+                                  route.startsWith('/team/') ? context.push(route) : context.go(route);
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ),
+              ]),
             ),
           ),
-        ]),
+        ),
       ),
     );
   }

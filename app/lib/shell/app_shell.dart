@@ -42,7 +42,9 @@ class _AppShellState extends ConsumerState<AppShell> {
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (_drawerOpen) {
-          _scaffoldKey.currentState?.closeDrawer();
+          _scaffoldKey.currentState
+            ?..closeDrawer()
+            ..closeEndDrawer();
         } else {
           context.go(_home);
         }
@@ -51,7 +53,14 @@ class _AppShellState extends ConsumerState<AppShell> {
         child: Scaffold(
           key: _scaffoldKey,
           backgroundColor: Colors.transparent,
+          // Gesture-nav phones reserve the screen edges for system back; start the
+          // drawer drag zone just inside that inset so edge swipes reach us.
+          drawerEdgeDragWidth: _edgeDragWidth(context),
           onDrawerChanged: (open) => setState(() => _drawerOpen = open),
+          onEndDrawerChanged: (open) {
+            setState(() => _drawerOpen = open);
+            if (!open) ref.invalidate(notificationsProvider); // reflect reads made inside
+          },
           appBar: AppBar(
             title: Text(item?.label ?? 'Bearch'),
             actions: [
@@ -60,6 +69,7 @@ class _AppShellState extends ConsumerState<AppShell> {
             ],
           ),
           drawer: BearchDrawer(location: widget.location),
+          endDrawer: const NotificationsDrawer(),
           body: Column(
             children: [
               if (!Env.isConfigured) const _PreviewBanner(),
@@ -70,6 +80,12 @@ class _AppShellState extends ConsumerState<AppShell> {
       ),
     );
   }
+}
+
+double _edgeDragWidth(BuildContext context) {
+  // Some ROMs (HyperOS) report 0 here while still eating ~30dp, so floor it.
+  final g = MediaQuery.systemGestureInsetsOf(context);
+  return [g.left, g.right, 32.0].reduce((a, b) => a > b ? a : b) + 28;
 }
 
 class _PreviewBanner extends StatelessWidget {

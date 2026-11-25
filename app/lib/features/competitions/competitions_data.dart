@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/local_cache.dart';
 import '../../core/session.dart';
 
 class CompetitionSummary {
@@ -97,9 +100,19 @@ final _previewCompetitions = [
   ),
 ];
 
-final competitionsProvider = FutureProvider<List<CompetitionSummary>>((ref) async {
+/// Cached list first (instant on cold start), then the fresh one from Supabase.
+final competitionsProvider = StreamProvider<List<CompetitionSummary>>((ref) async* {
   final client = ref.watch(supabaseProvider);
-  if (client == null) return _previewCompetitions;
+  if (client == null) {
+    yield _previewCompetitions;
+    return;
+  }
+  final cached = LocalCache.competitionsJson;
+  if (cached != null) {
+    try {
+      yield [for (final r in jsonDecode(cached) as List) CompetitionSummary.fromJson(r as Map<String, dynamic>)];
+    } catch (_) {/* stale format: ignore */}
+  }
   final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
   final rows = await client
       .from('competitions')
@@ -107,5 +120,6 @@ final competitionsProvider = FutureProvider<List<CompetitionSummary>>((ref) asyn
       .eq('status', 'approved')
       .gte('registration_deadline', today)
       .order('registration_deadline', ascending: true); // closest deadline first
-  return rows.map(CompetitionSummary.fromJson).toList();
+  LocalCache.setCompetitionsJson(jsonEncode(rows));
+  yield rows.map(CompetitionSummary.fromJson).toList();
 });

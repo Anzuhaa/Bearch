@@ -8,7 +8,9 @@ import '../../core/motion.dart';
 import '../../core/session.dart';
 import '../../core/skeleton.dart';
 import '../../core/theme.dart';
+import 'browse_filter_sheet.dart';
 import 'competitions_data.dart';
+import 'lobby_buzz.dart';
 
 /// Figma 04 · Browse Competitions (mobile).
 class BrowseScreen extends ConsumerStatefulWidget {
@@ -19,7 +21,7 @@ class BrowseScreen extends ConsumerStatefulWidget {
 }
 
 class _BrowseScreenState extends ConsumerState<BrowseScreen> {
-  String _category = 'all';
+  BrowseFilter _filter = (category: 'all', sort: 'deadline');
 
   @override
   Widget build(BuildContext context) {
@@ -51,21 +53,18 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
             ),
             const SizedBox(height: 12),
           ],
-          SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: competitionCategories.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 8),
-              itemBuilder: (context, i) {
-                final key = competitionCategories.keys.elementAt(i);
-                return ChoiceChip(
-                  label: Text(competitionCategories[key]!),
-                  selected: _category == key,
-                  onSelected: (_) => setState(() => _category = key),
-                );
-              },
-            ),
+          _FilterBar(
+            filter: _filter,
+            onTap: () async {
+              final all = competitions.value ?? const <CompetitionSummary>[];
+              final counts = <String, int>{'all': all.length};
+              for (final c in all) {
+                counts[c.category] = (counts[c.category] ?? 0) + 1;
+              }
+              final f = await showBrowseFilterSheet(context, _filter, counts);
+              if (f != null) setState(() => _filter = f);
+            },
+            onClear: () => setState(() => _filter = (category: 'all', sort: _filter.sort)),
           ),
           const SizedBox(height: 12),
           ...competitions.when(
@@ -79,7 +78,14 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
               ),
             ],
             data: (list) {
-              final shown = _category == 'all' ? list : list.where((c) => c.category == _category).toList();
+              final shown = [
+                for (final c in list)
+                  if (_filter.category == 'all' || c.category == _filter.category) c,
+              ]..sort(switch (_filter.sort) {
+                  'lobbies' => (a, b) => b.lobbyCount.compareTo(a.lobbyCount),
+                  'name' => (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+                  _ => (a, b) => a.registrationDeadline.compareTo(b.registrationDeadline),
+                });
               if (shown.isEmpty) {
                 return [
                   EmptyState(
@@ -138,9 +144,10 @@ class _CompetitionCard extends StatelessWidget {
             children: [
               _Meta(Icons.event_rounded, 'Reg. closes $deadline'),
               _Meta(Icons.group_outlined, size),
-              _Meta(Icons.meeting_room_outlined, '${c.lobbyCount} open ${c.lobbyCount == 1 ? 'lobby' : 'lobbies'}'),
             ],
           ),
+          const SizedBox(height: 12),
+          LobbyBuzz(count: c.lobbyCount),
         ],
       ),
     );
@@ -160,5 +167,41 @@ class _Meta extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [Icon(icon, size: 15, color: style?.color), const SizedBox(width: 4), Text(label, style: style)],
     );
+  }
+}
+
+/// One tappable summary of the active filter + sort (opens the sheet).
+class _FilterBar extends StatelessWidget {
+  const _FilterBar({required this.filter, required this.onTap, required this.onClear});
+
+  final BrowseFilter filter;
+  final VoidCallback onTap;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final filtered = filter.category != 'all';
+    return Row(children: [
+      Expanded(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: InputDecorator(
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.tune_rounded),
+              suffixIcon: Icon(Icons.search_rounded),
+              isDense: true,
+            ),
+            child: Text(
+              '${competitionCategories[filter.category]} · ${browseSorts[filter.sort]}',
+              style: t.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      ),
+      if (filtered) IconButton(tooltip: 'Clear category', onPressed: onClear, icon: const Icon(Icons.close_rounded)),
+    ]);
   }
 }
