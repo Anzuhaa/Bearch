@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/glass.dart';
+import '../../core/motion.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../lobbies/lobby_models.dart';
@@ -55,6 +56,7 @@ class _Hub extends ConsumerWidget {
         LockBanner(team: team),
         const SizedBox(height: 16),
         _Tile(
+          index: 0,
           icon: Icons.groups_rounded,
           title: team.isLocked ? 'Members' : 'Lobby & members',
           subtitle: team.isLocked
@@ -65,18 +67,21 @@ class _Hub extends ConsumerWidget {
           onTap: () => context.push('/lobby/$id'),
         ),
         _Tile(
+          index: 1,
           icon: Icons.chat_bubble_outline_rounded,
           title: 'Chat',
           subtitle: 'Team group chat',
           onTap: () => context.push('/team/$id/chat'),
         ),
         _Tile(
+          index: 2,
           icon: Icons.calendar_month_rounded,
           title: 'Calendar',
           subtitle: 'Shared free time & best meeting slots',
           onTap: () => context.push('/team/$id/calendar'),
         ),
         _Tile(
+          index: 3,
           icon: Icons.workspace_premium_outlined,
           title: 'Rate & claim SEP',
           subtitle: team.isLocked
@@ -85,6 +90,7 @@ class _Hub extends ConsumerWidget {
           onTap: team.isLocked ? () => context.push('/team/$id/rate') : null,
         ),
         _Tile(
+          index: 4,
           icon: Icons.flag_outlined,
           title: 'Report a member',
           subtitle: 'Fact-based, with evidence. They can appeal within 7 days.',
@@ -101,7 +107,9 @@ class _Hub extends ConsumerWidget {
 }
 
 class _Tile extends StatelessWidget {
-  const _Tile({required this.icon, required this.title, required this.subtitle, required this.onTap, this.color});
+  const _Tile({required this.index, required this.icon, required this.title, required this.subtitle, required this.onTap, this.color});
+
+  final int index;
 
   final IconData icon;
   final String title;
@@ -114,7 +122,9 @@ class _Tile extends StatelessWidget {
     final t = Theme.of(context).textTheme;
     final enabled = onTap != null;
     final c = color ?? BearchColors.accent;
-    return Padding(
+    return Entrance(
+      index: index,
+      child: Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Opacity(
         opacity: enabled ? 1 : 0.5,
@@ -139,6 +149,6 @@ class _Tile extends StatelessWidget {
           ]),
         ),
       ),
-    );
+    ));
   }
 }

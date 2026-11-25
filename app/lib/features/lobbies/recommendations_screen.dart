@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
+import '../../core/motion.dart';
 import '../../core/session.dart';
 import '../../core/skeleton.dart';
 import '../../core/theme.dart';
@@ -117,7 +118,10 @@ class _Body extends ConsumerWidget {
             title: 'No matching students yet',
             message: 'Nobody available covers these skills right now. Try other skills or check back later.',
           ),
-        for (final c in recs.candidates) ...[_CandidateCard(teamId: teamId, candidate: c), const SizedBox(height: 12)],
+        for (final (i, c) in recs.candidates.indexed) ...[
+          Entrance(index: i, child: _CandidateCard(teamId: teamId, candidate: c)),
+          const SizedBox(height: 12),
+        ],
       ],
     );
   }

@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/env.dart';
 import 'core/theme.dart';
 import 'core/theme_mode.dart';
+import 'core/theme_reveal.dart';
 import 'router.dart';
 
 Future<void> main() async {
@@ -33,6 +34,11 @@ Future<void> _preloadMontserrat() async {
   }
 }
 
+// Built once: rebuilding ThemeData (incl. the Montserrat text theme) on every
+// theme toggle cost a frame.
+final _lightTheme = buildBearchTheme(Brightness.light);
+final _darkTheme = buildBearchTheme(Brightness.dark);
+
 class BearchApp extends ConsumerWidget {
   const BearchApp({super.key});
 
@@ -41,11 +47,12 @@ class BearchApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Bearch',
       debugShowCheckedModeBanner: false,
-      theme: buildBearchTheme(Brightness.light),
-      darkTheme: buildBearchTheme(Brightness.dark),
+      theme: _lightTheme,
+      darkTheme: _darkTheme,
       themeMode: ref.watch(themeModeProvider),
-      themeAnimationDuration: const Duration(milliseconds: 300),
-      themeAnimationCurve: Curves.easeInOut,
+      // Theme changes are animated by ThemeReveal (one snapshot), not by lerping ThemeData.
+      themeAnimationDuration: Duration.zero,
+      builder: (context, child) => ThemeReveal(child: child ?? const SizedBox.shrink()),
       routerConfig: ref.watch(routerProvider),
     );
   }

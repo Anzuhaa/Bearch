@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import 'motion.dart';
 import 'theme.dart';
 
 /// Frosted-glass card used everywhere in Bearch.
@@ -42,13 +43,15 @@ class GlassCard extends StatelessWidget {
         child: BackdropFilter(filter: ImageFilter.blur(sigmaX: glass.blur, sigmaY: glass.blur), child: card),
       );
     }
-    return DecoratedBox(
+    return PressScale(
+      enabled: onTap != null,
+      child: DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: shape,
         boxShadow: [BoxShadow(color: glass.shadow, blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: card,
-    );
+    ));
   }
 }
 

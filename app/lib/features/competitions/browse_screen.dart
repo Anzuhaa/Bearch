@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/glass.dart';
+import '../../core/motion.dart';
 import '../../core/session.dart';
 import '../../core/skeleton.dart';
 import '../../core/theme.dart';
@@ -90,7 +91,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
                 ];
               }
               return [
-                for (final c in shown) ...[_CompetitionCard(c), const SizedBox(height: 12)],
+                for (final (i, c) in shown.indexed) ...[Entrance(index: i, child: _CompetitionCard(c)), const SizedBox(height: 12)],
               ];
             },
           ),

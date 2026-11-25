@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
+import '../../core/motion.dart';
 import '../../core/session.dart';
 import '../../core/skeleton.dart';
 import '../../core/theme.dart';
@@ -127,12 +128,12 @@ class _Body extends ConsumerWidget {
                     title: 'No lobbies yet',
                     message: 'Be the first: open a lobby and broadcast who you need.',
                   ),
-                for (final team in list) ...[
-                  TeamCard(
+                for (final (i, team) in list.indexed) ...[
+                  Entrance(index: i, child: TeamCard(
                     team: team,
                     onTap: team.hasMember(me) ? () => context.push('/lobby/${team.id}') : null,
                     action: _teamAction(context, ref, team, mine, myRequests),
-                  ),
+                  )),
                   const SizedBox(height: 12),
                 ],
               ],

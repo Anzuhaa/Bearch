@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
+import '../../core/motion.dart';
 import '../../core/session.dart';
 import '../../core/skeleton.dart';
 import 'lobby_models.dart';
@@ -35,13 +36,13 @@ class MyLobbiesScreen extends ConsumerWidget {
                     action: FilledButton(onPressed: () => context.go('/browse'), child: const Text('Browse competitions')),
                   )
                 : Column(children: [
-                    for (final team in teams) ...[
-                      TeamCard(
+                    for (final (i, team) in teams.indexed) ...[
+                      Entrance(index: i, child: TeamCard(
                         team: team,
                         subtitle: '${team.competitionName} · ${team.leaderId == me ? 'You lead' : 'Member'}',
                         onTap: () => context.push('/team/${team.id}'),
                         action: const Icon(Icons.chevron_right_rounded),
-                      ),
+                      )),
                       const SizedBox(height: 12),
                     ],
                   ]),

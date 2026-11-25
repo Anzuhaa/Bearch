@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'theme_reveal.dart';
+
 /// Light/dark choice. Starts from the system setting; the toggle overrides it.
 class ThemeModeNotifier extends Notifier<ThemeMode> {
   @override
@@ -22,7 +24,13 @@ class ThemeToggleButton extends ConsumerWidget {
     final isDark = brightness == Brightness.dark;
     return IconButton(
       tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
-      onPressed: () => ref.read(themeModeProvider.notifier).toggle(brightness),
+      onPressed: () {
+        void switchTheme() => ref.read(themeModeProvider.notifier).toggle(brightness);
+        final box = context.findRenderObject() as RenderBox?;
+        final reveal = ThemeReveal.of(context);
+        if (box == null || reveal == null) return switchTheme();
+        reveal.reveal(box.localToGlobal(box.size.center(Offset.zero)), switchTheme);
+      },
       icon: AnimatedSwitcher(
         duration: const Duration(milliseconds: 250),
         transitionBuilder: (child, anim) => RotationTransition(
