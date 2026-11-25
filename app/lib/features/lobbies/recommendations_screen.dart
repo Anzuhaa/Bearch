@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 import '../../data/bearch_api.dart';
 import 'lobby_providers.dart';
@@ -38,6 +39,7 @@ class RecommendationsScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
           children: [
             AsyncView<Recommendations>(
+              loading: const SkeletonList(avatar: true, chips: true, caption: 'AI is reading the competition details and ranking candidates…'),
               value: recs,
               onRetry: () => ref.invalidate(recommendationsProvider(teamId)),
               data: (r) => _Body(teamId: teamId, recs: r),

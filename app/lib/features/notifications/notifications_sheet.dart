@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/async_ui.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 
 typedef AppNotification = ({
@@ -111,6 +112,7 @@ class _NotificationsSheet extends ConsumerWidget {
           ),
           Expanded(
             child: AsyncView<List<AppNotification>>(
+              loading: const Padding(padding: EdgeInsets.all(16), child: SkeletonList(count: 4, lines: 1, avatar: true)),
               value: ref.watch(notificationsProvider),
               onRetry: () => ref.invalidate(notificationsProvider),
               data: (list) => list.isEmpty

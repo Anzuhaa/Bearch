@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import 'lobby_models.dart';
 import 'lobby_providers.dart';
 import 'lobby_widgets.dart';
@@ -23,6 +24,7 @@ class MyLobbiesScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
         children: [
           AsyncView<List<TeamView>>(
+            loading: const SkeletonList(avatar: true, chips: true),
             value: ref.watch(myTeamsProvider),
             onRetry: () => ref.invalidate(myTeamsProvider),
             data: (teams) => teams.isEmpty

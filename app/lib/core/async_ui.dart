@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'glass.dart';
+import 'skeleton.dart';
 import 'theme.dart';
 import 'theme_mode.dart';
 
@@ -24,19 +25,18 @@ String errorText(Object e) {
 
 /// Loading / error (with retry) / data for an [AsyncValue].
 class AsyncView<T> extends StatelessWidget {
-  const AsyncView({super.key, required this.value, required this.data, this.onRetry});
+  const AsyncView({super.key, required this.value, required this.data, this.onRetry, this.loading});
 
   final AsyncValue<T> value;
+  /// Skeleton shown while loading (default: a few pulsing cards).
+  final Widget? loading;
   final Widget Function(T data) data;
   final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
     return value.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.all(48),
-        child: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () => loading ?? const SkeletonList(),
       error: (e, _) => Padding(
         padding: const EdgeInsets.all(16),
         child: EmptyState(

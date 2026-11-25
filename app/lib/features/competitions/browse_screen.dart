@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/glass.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 import 'competitions_data.dart';
 
@@ -67,7 +68,7 @@ class _BrowseScreenState extends ConsumerState<BrowseScreen> {
           ),
           const SizedBox(height: 12),
           ...competitions.when(
-            loading: () => [const Padding(padding: EdgeInsets.all(48), child: Center(child: CircularProgressIndicator()))],
+            loading: () => [const SkeletonList(count: 4, lines: 1, chips: true)],
             error: (e, _) => [
               EmptyState(
                 icon: Icons.cloud_off_rounded,

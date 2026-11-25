@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 import '../../data/bearch_api.dart';
 import 'lobby_models.dart';
@@ -32,6 +33,7 @@ class LobbyScreen extends ConsumerWidget {
           return ref.refresh(teamProvider(teamId).future);
         },
         child: AsyncView<TeamView>(
+          loading: const SkeletonDetail(),
           value: team,
           onRetry: () => ref.invalidate(teamProvider(teamId)),
           data: (t) => _LobbyBody(team: t),

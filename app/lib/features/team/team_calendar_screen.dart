@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 import '../lobbies/lobby_models.dart';
 import 'availability_sheet.dart';
@@ -57,6 +58,7 @@ class _Calendar extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         AsyncView<List<HeatCell>>(
+          loading: const SkeletonPulse(child: SkeletonBox(height: 380, radius: 20)),
           value: ref.watch(heatmapProvider(team.id)),
           onRetry: () => ref.invalidate(heatmapProvider(team.id)),
           data: (cells) {

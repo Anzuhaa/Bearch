@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import '../lobbies/lobby_models.dart';
 import '../lobbies/lobby_providers.dart';
 import '../lobbies/skills_picker_sheet.dart';
@@ -42,6 +43,7 @@ class ProfileScreen extends ConsumerWidget {
     return PageScaffold(
       title: 'Skill profile',
       body: AsyncView<ProfileForm>(
+        loading: const SkeletonDetail(),
         value: ref.watch(_profileFormProvider),
         onRetry: () => ref.invalidate(_profileFormProvider),
         data: (f) => _Form(initial: f),
@@ -107,6 +109,7 @@ class _FormState extends ConsumerState<_Form> {
           TextField(controller: _name, onChanged: (_) => setState(() {}), decoration: const InputDecoration(labelText: 'Full name')),
           const SizedBox(height: 10),
           AsyncView<List<({String id, String name})>>(
+            loading: const SkeletonPulse(child: SkeletonBox(height: 56, radius: 14)),
             value: ref.watch(majorsProvider),
             data: (majors) => DropdownButtonFormField<String>(
               initialValue: _major,

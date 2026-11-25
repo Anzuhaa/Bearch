@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/async_ui.dart';
+import '../../core/skeleton.dart';
 import 'lobby_models.dart';
 import 'lobby_providers.dart';
 
@@ -44,6 +45,7 @@ class _SkillsPickerState extends ConsumerState<_SkillsPicker> {
               Text('${_selected.length} selected', style: t.bodySmall),
               Expanded(
                 child: AsyncView<List<SkillOption>>(
+                  loading: const SkeletonList(count: 2, lines: 2),
                   value: ref.watch(skillsCatalogProvider),
                   onRetry: () => ref.invalidate(skillsCatalogProvider),
                   data: (skills) => ListView(

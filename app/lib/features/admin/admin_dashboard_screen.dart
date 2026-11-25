@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 import '../../data/bearch_api.dart';
 
@@ -29,6 +30,7 @@ class AdminDashboardScreen extends ConsumerWidget {
           Text('Semester overview (last 6 months)', style: t.bodySmall),
           const SizedBox(height: 12),
           AsyncView<Map<String, dynamic>>(
+            loading: const SkeletonGrid(),
             value: ref.watch(adminStatsProvider),
             onRetry: () => ref.invalidate(adminStatsProvider),
             data: (s) {

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 import '../../data/bearch_api.dart';
 import '../lobbies/lobby_models.dart';
@@ -29,6 +30,7 @@ class InvitesScreen extends ConsumerWidget {
         children: [
           const SectionLabel('Invites for you'),
           AsyncView<List<InviteView>>(
+            loading: const SkeletonList(count: 1, lines: 2),
             value: ref.watch(myInvitesProvider),
             onRetry: () => ref.invalidate(myInvitesProvider),
             data: (invites) => invites.isEmpty
@@ -65,6 +67,7 @@ class InvitesScreen extends ConsumerWidget {
           ),
           const SectionLabel('My join requests'),
           AsyncView<List<JoinRequestView>>(
+            loading: const SkeletonList(count: 2, lines: 0),
             value: ref.watch(myRequestsProvider),
             onRetry: () => ref.invalidate(myRequestsProvider),
             data: (reqs) => reqs.isEmpty

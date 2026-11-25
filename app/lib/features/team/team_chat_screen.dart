@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 import '../lobbies/lobby_models.dart';
 import 'team_picker.dart';
@@ -87,6 +88,7 @@ class _ChatState extends ConsumerState<_Chat> {
       ),
       Expanded(
         child: AsyncView<List<ChatMessage>>(
+          loading: const Padding(padding: EdgeInsets.all(16), child: SkeletonList(count: 3, lines: 0, avatar: true)),
           value: ref.watch(teamMessagesProvider(widget.team.id)),
           onRetry: () => ref.invalidate(teamMessagesProvider(widget.team.id)),
           data: (msgs) => msgs.isEmpty

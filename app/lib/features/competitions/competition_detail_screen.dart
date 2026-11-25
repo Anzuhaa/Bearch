@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 import '../../data/bearch_api.dart';
 import '../lobbies/create_lobby_sheet.dart';
@@ -31,6 +32,7 @@ class CompetitionDetailScreen extends ConsumerWidget {
           return ref.refresh(competitionDetailProvider(competitionId).future);
         },
         child: AsyncView<CompetitionDetail>(
+          loading: const SkeletonDetail(),
           value: comp,
           onRetry: () => ref.invalidate(competitionDetailProvider(competitionId)),
           data: (c) => _Body(competition: c),
@@ -97,6 +99,7 @@ class _Body extends ConsumerWidget {
           ]),
         ),
         AsyncView<List<TeamView>>(
+          loading: const Padding(padding: EdgeInsets.only(top: 20), child: SkeletonList(count: 2, avatar: true, chips: true)),
           value: teams,
           onRetry: () => ref.invalidate(competitionTeamsProvider(c.id)),
           data: (list) {

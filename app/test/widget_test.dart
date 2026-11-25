@@ -1,3 +1,6 @@
+import 'package:bearch/core/async_ui.dart';
+import 'package:bearch/core/skeleton.dart';
+import 'package:bearch/core/theme.dart';
 import 'package:bearch/main.dart';
 import 'package:bearch/router.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +64,16 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(find.text('UPH STACK Hackathon 2026'), findsOneWidget); // back on Browse
+  });
+
+  testWidgets('AsyncView shows a skeleton (not a spinner) while loading', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      theme: buildBearchTheme(Brightness.light),
+      home: Scaffold(body: AsyncView<int>(value: const AsyncLoading(), data: (v) => Text('$v'))),
+    ));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(SkeletonCard), findsWidgets);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   test('navItemFor resolves nested paths', () {

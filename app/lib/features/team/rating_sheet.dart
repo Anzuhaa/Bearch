@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/async_ui.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 import '../../data/bearch_api.dart';
 
@@ -100,6 +101,7 @@ class _RatingSheetState extends ConsumerState<_RatingSheet> {
           Text('Ratings are anonymous and aggregated into one reputation score.', style: t.bodySmall),
           const SectionLabel('Hard skills · tier shown in this competition'),
           AsyncView<List<({String id, String name})>>(
+            loading: const SkeletonPulse(child: SkeletonBox(height: 40, radius: 12)),
             value: ref.watch(_hardSkillsProvider(widget.mate.profileId)),
             data: (skills) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               if (skills.isEmpty) Text('No hard skills on their profile.', style: t.bodySmall),

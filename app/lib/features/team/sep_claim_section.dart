@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/async_ui.dart';
 import '../../core/glass.dart';
 import '../../core/session.dart';
+import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 import '../../data/bearch_api.dart';
 
@@ -83,11 +84,13 @@ class _SepClaimSectionState extends ConsumerState<SepClaimSection> {
     final t = Theme.of(context).textTheme;
     final api = ref.watch(bearchApiProvider);
     return AsyncView<SepClaim?>(
+      loading: const SkeletonList(count: 1, lines: 3),
       value: ref.watch(sepClaimProvider(widget.teamId)),
       onRetry: () => ref.invalidate(sepClaimProvider(widget.teamId)),
       data: (claim) {
         if (claim != null) return _ClaimStatus(claim);
         return AsyncView<List<String>>(
+          loading: const SkeletonList(count: 1, lines: 3),
           value: ref.watch(sepBlockersProvider(widget.teamId)),
           onRetry: () => ref.invalidate(sepBlockersProvider(widget.teamId)),
           data: (blockers) => GlassCard(
