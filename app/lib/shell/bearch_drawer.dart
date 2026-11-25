@@ -182,7 +182,7 @@ class _DrawerTile extends StatelessWidget {
         ),
         onTap: () {
           Navigator.of(context).pop();
-          context.go(item.path);
+          item.pushed ? context.push(item.path) : context.go(item.path);
         },
       ),
     );

@@ -10,6 +10,7 @@ class NavItem {
     this.figma = const [],
     this.plan = const [],
     this.backend = const [],
+    this.pushed = false,
   });
 
   final String path;
@@ -18,6 +19,9 @@ class NavItem {
   final List<String> figma;
   final List<String> plan;
   final List<String> backend;
+
+  /// Opens as a full-screen page on top (not a drawer-shell destination).
+  final bool pushed;
 }
 
 class NavSection {
@@ -44,6 +48,15 @@ const studentNav = [
       ],
       backend: ['insert competitions (draft)', 'fn check-duplicate', 'rpc submit_competition'],
     ),
+  ]),
+  NavSection('Teams', [
+    NavItem(
+      path: '/teams',
+      label: 'My Teams',
+      icon: Icons.groups_rounded,
+      figma: ['06 Lobby', '09 Team Locked', '10 Team Calendar', '11 Team Chat', '12 Rate', '13 SEP'],
+      plan: ['Pick a team, then open its hub: lobby & members, chat, calendar, rate & SEP, report'],
+    ),
     NavItem(
       path: '/invites',
       label: 'Invites',
@@ -52,14 +65,8 @@ const studentNav = [
       backend: ['select team_invites / join_requests', 'rpc respond_invite / cancel_join_request'],
     ),
   ]),
-  NavSection('My Team', [
-    NavItem(
-      path: '/teams',
-      label: 'My Teams',
-      icon: Icons.groups_rounded,
-      figma: ['06 Lobby', '09 Team Locked', '10 Team Calendar', '11 Team Chat', '12 Rate', '13 SEP'],
-      plan: ['Pick a team, then open its hub: lobby & members, chat, calendar, rate & SEP, report'],
-    ),
+  NavSection('Account', [
+    NavItem(path: '/onboarding', label: 'My Profile', icon: Icons.person_outline_rounded, pushed: true),
     NavItem(
       path: '/reports',
       label: 'Reports & Appeals',

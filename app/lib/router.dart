@@ -111,7 +111,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => AppShell(location: state.matchedLocation, child: child),
         routes: [
-          for (final item in allNavItems)
+          for (final item in allNavItems.where((i) => !i.pushed))
             GoRoute(
               path: item.path,
               builder: (context, state) => _builtScreens[item.path]!(),

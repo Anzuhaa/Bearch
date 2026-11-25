@@ -35,7 +35,8 @@ void main() {
 
     await tester.tap(find.byTooltip('Open navigation menu'));
     await tester.pumpAndSettle();
-    expect(find.text('MY TEAM', skipOffstage: false), findsOneWidget);
+    expect(find.text('TEAMS', skipOffstage: false), findsOneWidget);
+    expect(find.text('ACCOUNT', skipOffstage: false), findsOneWidget);
     expect(find.text('My Teams', skipOffstage: false), findsOneWidget);
     expect(find.text('Team Chat', skipOffstage: false), findsNothing); // moved into the team hub
 
