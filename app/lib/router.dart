@@ -6,11 +6,20 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/session.dart';
+import 'features/admin/admin_dashboard_screen.dart';
+import 'features/admin/competition_queue_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/verify_otp_screen.dart';
 import 'features/competitions/browse_screen.dart';
+import 'features/competitions/competition_detail_screen.dart';
+import 'features/competitions/submit_competition_screen.dart';
+import 'features/invites/invites_screen.dart';
+import 'features/lobbies/lobby_screen.dart';
+import 'features/lobbies/my_lobbies_screen.dart';
+import 'features/lobbies/recommendations_screen.dart';
 import 'features/placeholder_screen.dart';
 import 'shell/app_shell.dart';
+import 'shell/home_redirect.dart';
 import 'shell/nav_items.dart';
 
 export 'shell/nav_items.dart';
@@ -30,21 +39,32 @@ class _AuthRefresh extends ChangeNotifier {
   }
 }
 
+/// Drawer destinations that are built. Everything else in nav_items.dart still
+/// renders its "To build" placeholder.
+final Map<String, Widget Function()> _builtScreens = {
+  '/browse': () => const BrowseScreen(),
+  '/submit': () => const SubmitCompetitionScreen(),
+  '/lobbies': () => const MyLobbiesScreen(),
+  '/invites': () => const InvitesScreen(),
+  '/admin': () => const AdminDashboardScreen(),
+  '/admin/competitions': () => const CompetitionQueueScreen(),
+};
+
 final routerProvider = Provider<GoRouter>((ref) {
   final client = ref.watch(supabaseProvider);
   final refresh = _AuthRefresh(client);
   ref.onDispose(refresh.dispose);
 
   return GoRouter(
-    initialLocation: '/browse',
+    initialLocation: '/home',
     refreshListenable: refresh,
     redirect: (context, state) {
       final loc = state.matchedLocation;
       final atAuth = loc == '/login' || loc == '/verify';
-      if (client == null) return atAuth ? '/browse' : null; // preview mode: no auth
+      if (client == null) return atAuth || loc == '/home' ? '/browse' : null; // preview mode: no auth
       final signedIn = client.auth.currentSession != null;
       if (!signedIn) return atAuth ? null : '/login';
-      if (atAuth) return '/browse';
+      if (atAuth) return '/home'; // HomeRedirect sends admins to /admin, students to /browse
       return null;
     },
     routes: [
@@ -53,36 +73,31 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/verify',
         builder: (context, state) => VerifyOtpScreen(email: state.uri.queryParameters['email'] ?? ''),
       ),
+      GoRoute(path: '/home', builder: (context, state) => const HomeRedirect()),
       GoRoute(path: '/onboarding', builder: (context, state) => const PlaceholderScreen(item: onboardingItem)),
+      // Full-screen detail pages (pushed on top of the drawer shell).
+      GoRoute(
+        path: '/competition/:id',
+        builder: (context, state) => CompetitionDetailScreen(competitionId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/lobby/:id',
+        builder: (context, state) => LobbyScreen(teamId: state.pathParameters['id']!),
+        routes: [
+          GoRoute(
+            path: 'recommend',
+            builder: (context, state) => RecommendationsScreen(teamId: state.pathParameters['id']!),
+          ),
+        ],
+      ),
       ShellRoute(
         builder: (context, state, child) => AppShell(location: state.matchedLocation, child: child),
         routes: [
-          GoRoute(
-            path: '/browse',
-            builder: (context, state) => const BrowseScreen(),
-            routes: [
-              GoRoute(
-                path: ':id',
-                builder: (context, state) => PlaceholderScreen(
-                  item: NavItem(
-                    path: '/browse/${state.pathParameters['id']}',
-                    label: 'Competition Detail',
-                    icon: Icons.emoji_events_outlined,
-                    figma: const ['05 · Competition Detail'],
-                    plan: const [
-                      'Header: verified pill, level, deadline, team size, prize, SEP on win',
-                      'Open lobbies sorted by skill match (Request to join / Manage lobby)',
-                      'Timeline with "Lobbies auto-lock at H-1" note',
-                      'Open a lobby',
-                    ],
-                    backend: const ['select competitions + teams', 'rpc create_team / request_join'],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          for (final item in allNavItems.where((i) => i.path != '/browse'))
-            GoRoute(path: item.path, builder: (context, state) => PlaceholderScreen(item: item)),
+          for (final item in allNavItems)
+            GoRoute(
+              path: item.path,
+              builder: (context, state) => _builtScreens[item.path]?.call() ?? PlaceholderScreen(item: item),
+            ),
         ],
       ),
     ],

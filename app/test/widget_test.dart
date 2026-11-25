@@ -40,7 +40,7 @@ void main() {
 
     // Navigated to the admin dashboard placeholder.
     expect(find.text('Dashboard'), findsWidgets);
-    expect(find.text('rpc admin_dashboard_stats'), findsOneWidget);
+    expect(find.text('Needs the Bearch backend'), findsOneWidget); // admin dashboard needs Supabase
   });
 
   testWidgets('Android back closes drawer, then returns home from other pages', (tester) async {

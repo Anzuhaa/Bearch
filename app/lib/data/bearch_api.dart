@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -64,6 +66,15 @@ class BearchApi {
 
   Future<void> disbandTeam(String teamId) => _db.rpc('disband_team', params: {'p_team': teamId});
 
+  Future<void> cancelInvite(String inviteId) => _db.rpc('cancel_invite', params: {'p_invite': inviteId});
+
+  /// Leader-only (RLS): replace the skills the lobby still needs.
+  Future<void> setRequiredSkills(String teamId, Iterable<String> skillIds) async {
+    await _db.from('team_required_skills').delete().eq('team_id', teamId);
+    final rows = [for (final id in skillIds) {'team_id': teamId, 'skill_id': id}];
+    if (rows.isNotEmpty) await _db.from('team_required_skills').insert(rows);
+  }
+
   // --------------------------------------------------------------- matching
   /// Ensures the team has skills to match on. Uses the leader's skills if set,
   /// otherwise the competition's cached AI inference (Gemini, once per competition).
@@ -78,6 +89,33 @@ class BearchApi {
   }
 
   // ----------------------------------------------------------- competitions
+  /// Insert (id == null) or update a draft submission. `fields` use DB column names.
+  Future<String> saveCompetitionDraft(String? id, Map<String, Object?> fields) async {
+    if (id != null) {
+      await _db.from('competitions').update(fields).eq('id', id);
+      return id;
+    }
+    final row = await _db
+        .from('competitions')
+        .insert({...fields, 'submitted_by': _db.auth.currentUser!.id})
+        .select('id')
+        .single();
+    return row['id'] as String;
+  }
+
+  /// Upload a poster/guidebook to `competition-proofs/{competitionId}/` and record it.
+  Future<void> uploadCompetitionProof(String competitionId, String fileName, List<int> bytes) async {
+    final path = '$competitionId/${DateTime.now().millisecondsSinceEpoch}-$fileName';
+    await _db.storage.from('competition-proofs').uploadBinary(path, Uint8List.fromList(bytes));
+    await _db.from('competition_files').insert({
+      'competition_id': competitionId,
+      'storage_path': path,
+      'file_name': fileName,
+      'size_bytes': bytes.length,
+      'uploaded_by': _db.auth.currentUser!.id,
+    });
+  }
+
   Future<DuplicateCheck> checkDuplicate(String competitionId) async {
     final res = await _db.functions.invoke('check-duplicate', body: {'competition_id': competitionId});
     return DuplicateCheck.fromJson(res.data as Map<String, dynamic>);

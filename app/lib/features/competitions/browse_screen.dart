@@ -112,7 +112,7 @@ class _CompetitionCard extends StatelessWidget {
     String cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1).replaceAll('_', ' ');
 
     return GlassCard(
-      onTap: () => context.go('/browse/${c.id}'),
+      onTap: () => context.push('/competition/${c.id}'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
