@@ -5,6 +5,11 @@ import 'package:flutter/material.dart';
 import 'theme.dart';
 
 /// Frosted-glass card used everywhere in Bearch.
+///
+/// Performance: a real backdrop blur re-samples everything behind the card on
+/// every frame. One per screen is fine; one per list card makes scrolling janky.
+/// Cards are 85% opaque over a soft static background, so by default they use
+/// the translucent fill only. Pass `blur: true` for a lone hero card.
 class GlassCard extends StatelessWidget {
   const GlassCard({
     super.key,
@@ -12,37 +17,37 @@ class GlassCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(16),
     this.radius = 20,
     this.onTap,
+    this.blur = false,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double radius;
   final VoidCallback? onTap;
+  final bool blur;
 
   @override
   Widget build(BuildContext context) {
     final glass = GlassTokens.of(context);
     final shape = BorderRadius.circular(radius);
+    Widget card = Material(
+      color: glass.fill,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: shape, side: BorderSide(color: glass.border)),
+      child: InkWell(onTap: onTap, child: Padding(padding: padding, child: child)),
+    );
+    if (blur) {
+      card = ClipRRect(
+        borderRadius: shape,
+        child: BackdropFilter(filter: ImageFilter.blur(sigmaX: glass.blur, sigmaY: glass.blur), child: card),
+      );
+    }
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: shape,
-        boxShadow: [BoxShadow(color: glass.shadow, blurRadius: 24, offset: const Offset(0, 8))],
+        boxShadow: [BoxShadow(color: glass.shadow, blurRadius: 12, offset: const Offset(0, 4))],
       ),
-      child: ClipRRect(
-        borderRadius: shape,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: glass.blur, sigmaY: glass.blur),
-          child: Material(
-            color: glass.fill,
-            shape: RoundedRectangleBorder(borderRadius: shape, side: BorderSide(color: glass.border)),
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: shape,
-              child: Padding(padding: padding, child: child),
-            ),
-          ),
-        ),
-      ),
+      child: card,
     );
   }
 }
@@ -69,9 +74,16 @@ class AppBackground extends StatelessWidget {
       color: bg,
       child: Stack(
         children: [
-          Positioned(top: -120, left: -100, child: blob(glass.blobs[0], 380)),
-          Positioned(top: -60, right: -120, child: blob(glass.blobs[1], 340)),
-          Positioned(bottom: -140, left: 40, child: blob(glass.blobs[2], 420)),
+          // Static blobs live in their own layer (painted once, not on every scroll frame).
+          Positioned.fill(
+            child: RepaintBoundary(
+              child: Stack(clipBehavior: Clip.hardEdge, children: [
+                Positioned(top: -120, left: -100, child: blob(glass.blobs[0], 380)),
+                Positioned(top: -60, right: -120, child: blob(glass.blobs[1], 340)),
+                Positioned(bottom: -140, left: 40, child: blob(glass.blobs[2], 420)),
+              ]),
+            ),
+          ),
           Positioned.fill(child: child),
         ],
       ),

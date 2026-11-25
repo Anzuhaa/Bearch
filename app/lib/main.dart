@@ -27,7 +27,7 @@ Future<void> _preloadMontserrat() async {
     GoogleFonts.montserrat(fontWeight: w);
   }
   try {
-    await GoogleFonts.pendingFonts().timeout(const Duration(seconds: 3));
+    await GoogleFonts.pendingFonts().timeout(const Duration(milliseconds: 1500));
   } catch (_) {
     // Offline or slow network: start anyway with the fallback font.
   }

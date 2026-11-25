@@ -28,7 +28,7 @@ class BearchDrawer extends ConsumerWidget {
       child: ClipRRect(
         borderRadius: const BorderRadius.horizontal(right: Radius.circular(28)),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16), // the one real blur on screen
           // Material (not a coloured Container) so ListTile ink/selection stays visible.
           child: Material(
             color: glass.fill,

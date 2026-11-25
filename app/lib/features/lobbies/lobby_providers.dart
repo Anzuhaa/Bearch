@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/async_ui.dart';
 import '../../core/session.dart';
 import 'lobby_models.dart';
 
@@ -10,14 +11,19 @@ SupabaseClient _db(Ref ref) {
   return c;
 }
 
-String uid(Ref ref) => _db(ref).auth.currentUser!.id;
+/// Watching the uid makes user-specific providers reset when the account changes.
+String uid(Ref ref) => ref.watch(currentUidProvider)!;
+
+const _cache = Duration(minutes: 2);
 
 final competitionDetailProvider = FutureProvider.autoDispose.family<CompetitionDetail, String>((ref, id) async {
+  ref.cacheFor(_cache);
   final row = await _db(ref).from('competitions').select(CompetitionDetail.select).eq('id', id).single();
   return CompetitionDetail.fromJson(row);
 });
 
 final competitionTeamsProvider = FutureProvider.autoDispose.family<List<TeamView>, String>((ref, competitionId) async {
+  ref.cacheFor(_cache);
   final rows = await _db(ref)
       .from('teams')
       .select(TeamView.select)
@@ -27,17 +33,20 @@ final competitionTeamsProvider = FutureProvider.autoDispose.family<List<TeamView
 });
 
 final teamProvider = FutureProvider.autoDispose.family<TeamView, String>((ref, teamId) async {
+  ref.cacheFor(_cache);
   final row = await _db(ref).from('teams').select(TeamView.select).eq('id', teamId).single();
   return TeamView.fromJson(row);
 });
 
 /// Lobbies I'm a member of (leader or member), newest first.
 final myTeamsProvider = FutureProvider.autoDispose<List<TeamView>>((ref) async {
-  final db = _db(ref);
-  final mine = await db.from('team_members').select('team_id').eq('profile_id', uid(ref));
-  final ids = [for (final r in mine) r['team_id'] as String];
-  if (ids.isEmpty) return [];
-  final rows = await db.from('teams').select(TeamView.select).inFilter('id', ids).order('created_at', ascending: false);
+  ref.cacheFor(_cache);
+  // One round trip: `me` is an inner-joined filter, `team_members` still embeds everyone.
+  final rows = await _db(ref)
+      .from('teams')
+      .select('${TeamView.select}, me:team_members!inner(profile_id)')
+      .eq('me.profile_id', uid(ref))
+      .order('created_at', ascending: false);
   return rows.map(TeamView.fromJson).toList();
 });
 

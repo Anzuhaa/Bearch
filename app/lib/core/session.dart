@@ -56,6 +56,13 @@ final authStateProvider = StreamProvider<AuthState?>((ref) {
   return client.auth.onAuthStateChange;
 });
 
+/// Current user id; only notifies when the user actually changes (sign-in/out),
+/// not on token refresh. User-specific cached providers must watch this.
+final currentUidProvider = Provider<String?>((ref) {
+  ref.watch(authStateProvider);
+  return ref.watch(supabaseProvider)?.auth.currentUser?.id;
+});
+
 final profileProvider = FutureProvider<Profile?>((ref) async {
   ref.watch(authStateProvider);
   final client = ref.watch(supabaseProvider);

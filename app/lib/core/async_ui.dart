@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -200,3 +202,14 @@ int daysUntil(DateTime deadline) {
   return DateTime(deadline.year, deadline.month, deadline.day).difference(today).inDays;
 }
 
+
+/// Keep an autoDispose provider's data for [duration] after the last listener
+/// leaves, so going back to a screen shows cached data instantly instead of a
+/// spinner (the backend is ~350ms away). Mutations still invalidate it.
+extension CacheFor on Ref {
+  void cacheFor(Duration duration) {
+    final link = keepAlive();
+    final timer = Timer(duration, link.close);
+    onDispose(timer.cancel);
+  }
+}
