@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,6 +11,8 @@ import 'router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Portrait only (phones). Manifest/Info.plist set the same at launch.
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   if (Env.isConfigured) {
     await Supabase.initialize(url: Env.supabaseUrl, publishableKey: Env.supabaseKey);
   }
