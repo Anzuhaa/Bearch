@@ -41,6 +41,16 @@ Hosted: `supabase link`, `supabase db push`, `supabase functions deploy infer-sk
 `insert into email_allowlist(email, role) values ('…@uph.edu', 'admin');` before they first sign in
 (demo/judge accounts: same table with role `student`; see `supabase/scripts/demo_accounts.mjs`).
 
+Demo accounts / reset before a rehearsal (needs the service-role key, never commit it):
+
+```bash
+SUPABASE_URL=https://<ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=... DEMO_PASSWORD=... \
+  node supabase/scripts/demo_accounts.mjs --reset
+```
+
+Resets to: open lobby "Bear Invasion (Demo)" on UPH STACK 2026 (Satria leads, AI recs path) and a
+finished, locked "Pitch Perfect (Demo)" on Hology 8.0 (ready for ratings, SEP claim, reports).
+
 DB tests (no Docker):
 
 ```bash
@@ -73,4 +83,4 @@ explicit `grant execute ... to authenticated`.
 
 - SEP points in `sep_point_rules` are placeholders until we have the official UPH SEP guideline.
 - "Sign in with UPH Mobile" and pushing SEP to UPH Mobile need an official UPH integration.
-- Most screens are placeholders that list their Figma frames and backend calls (see `app/lib/router.dart`).
+- Email OTP for real UPH addresses needs a custom SMTP provider (Supabase free tier limitation); demo accounts use password login.
