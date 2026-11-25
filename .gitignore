@@ -5,3 +5,4 @@ supabase/functions/.env
 supabase/.branches/
 supabase/.temp/
 node_modules/
+dist/

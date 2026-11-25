@@ -69,6 +69,7 @@ class _FormState extends ConsumerState<_Form> {
   late int? _batch = widget.initial.batch;
   late final Map<String, int> _skills = {...widget.initial.skills};
   bool _busy = false;
+  late bool _olderBatches = (_batch ?? DateTime.now().year) < DateTime.now().year - 4;
 
   @override
   void dispose() {
@@ -126,15 +127,21 @@ class _FormState extends ConsumerState<_Form> {
             ),
           ),
           const SizedBox(height: 12),
+          // Always relative to the current year: recent batches first (most students),
+          // older ones only when asked for.
           ChoiceGroup<int>(
             label: 'Batch',
             options: [
-              for (var y = year; y >= year - 4; y--) (value: y, label: '$y'),
-              if (_batch != null && _batch! < year - 4) (value: _batch!, label: '$_batch'),
+              for (var y = year; y >= year - (_olderBatches ? 12 : 4); y--) (value: y, label: '$y'),
             ],
             value: _batch,
             onChanged: (v) => setState(() => _batch = v),
           ),
+          if (!_olderBatches)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(onPressed: () => setState(() => _olderBatches = true), child: Text('Older than ${year - 4}…')),
+            ),
         ]),
       ),
       SectionLabel(
