@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/motion.dart';
 import '../../core/theme.dart';
 import 'competitions_data.dart';
 
@@ -36,7 +37,6 @@ class _FilterSheetState extends State<_FilterSheet> {
     final t = Theme.of(context).textTheme;
     final q = _q.trim().toLowerCase();
     final cats = competitionCategories.entries.where((e) => q.isEmpty || e.value.toLowerCase().contains(q)).toList();
-    const check = Icon(Icons.check_rounded, color: BearchColors.accent);
     Widget header(String s) => Padding(
           padding: const EdgeInsets.fromLTRB(4, 14, 4, 4),
           child: Text(s, style: t.labelSmall?.copyWith(letterSpacing: 1.1, fontWeight: FontWeight.w700)),
@@ -58,20 +58,14 @@ class _FilterSheetState extends State<_FilterSheet> {
                 if (q.isEmpty) ...[
                   header('SORT BY'),
                   for (final e in browseSorts.entries)
-                    ListTile(
-                      dense: true,
-                      title: Text(e.value),
-                      trailing: _sort == e.key ? check : null,
-                      onTap: () => setState(() => _sort = e.key),
-                    ),
+                    _Option(label: e.value, selected: _sort == e.key, onTap: () => setState(() => _sort = e.key)),
                 ],
                 header('CATEGORY'),
                 for (final e in cats)
-                  ListTile(
-                    dense: true,
-                    title: Text(e.value),
-                    subtitle: Text(_plural(widget.counts[e.key] ?? 0)),
-                    trailing: widget.current.category == e.key ? check : null,
+                  _Option(
+                    label: e.value,
+                    subtitle: _plural(widget.counts[e.key] ?? 0),
+                    selected: widget.current.category == e.key,
                     onTap: () => Navigator.pop(context, (category: e.key, sort: _sort)),
                   ),
                 if (cats.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text('No category matches "$_q"', style: t.bodyMedium)),
@@ -90,3 +84,43 @@ class _FilterSheetState extends State<_FilterSheet> {
 }
 
 String _plural(int n) => '$n ${n == 1 ? 'competition' : 'competitions'}';
+
+/// Sheet row with press feedback: scales down, tints accent when selected,
+/// and the check mark pops in.
+class _Option extends StatelessWidget {
+  const _Option({required this.label, required this.selected, required this.onTap, this.subtitle});
+
+  final String label;
+  final String? subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    const ms = Duration(milliseconds: 180);
+    return PressScale(
+      child: AnimatedContainer(
+        duration: ms,
+        curve: Curves.easeOut,
+        margin: const EdgeInsets.symmetric(vertical: 2),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: BearchColors.accent.withValues(alpha: selected ? 0.14 : 0),
+        ),
+        child: ListTile(
+          dense: true,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Text(label, style: selected ? const TextStyle(color: BearchColors.accent, fontWeight: FontWeight.w700) : null),
+          subtitle: subtitle == null ? null : Text(subtitle!),
+          trailing: AnimatedScale(
+            scale: selected ? 1 : 0,
+            duration: ms,
+            curve: Curves.easeOutBack,
+            child: const Icon(Icons.check_rounded, color: BearchColors.accent),
+          ),
+          onTap: onTap,
+        ),
+      ),
+    );
+  }
+}

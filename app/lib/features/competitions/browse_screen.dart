@@ -171,7 +171,8 @@ class _Meta extends StatelessWidget {
 }
 
 /// One tappable summary of the active filter + sort (opens the sheet).
-class _FilterBar extends StatelessWidget {
+/// Press/hover: shrinks slightly, glows accent and spins the tune icon.
+class _FilterBar extends StatefulWidget {
   const _FilterBar({required this.filter, required this.onTap, required this.onClear});
 
   final BrowseFilter filter;
@@ -179,29 +180,68 @@ class _FilterBar extends StatelessWidget {
   final VoidCallback onClear;
 
   @override
+  State<_FilterBar> createState() => _FilterBarState();
+}
+
+class _FilterBarState extends State<_FilterBar> {
+  bool _hover = false;
+  bool _down = false;
+
+  @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    final filtered = filter.category != 'all';
+    final f = widget.filter;
+    final on = _hover || _down;
+    const ms = Duration(milliseconds: 160);
     return Row(children: [
       Expanded(
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onTap,
-          child: InputDecorator(
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.tune_rounded),
-              suffixIcon: Icon(Icons.search_rounded),
-              isDense: true,
+        child: AnimatedScale(
+          scale: _down ? 0.97 : 1,
+          duration: ms,
+          curve: Curves.easeOut,
+          child: AnimatedContainer(
+            duration: ms,
+            curve: Curves.easeOut,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: BearchColors.accent.withValues(alpha: on ? 0.7 : 0)),
+              boxShadow: [BoxShadow(color: BearchColors.accent.withValues(alpha: on ? 0.22 : 0), blurRadius: 16)],
             ),
-            child: Text(
-              '${competitionCategories[filter.category]} · ${browseSorts[filter.sort]}',
-              style: t.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-              overflow: TextOverflow.ellipsis,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: widget.onTap,
+              onHover: (v) => setState(() => _hover = v),
+              onHighlightChanged: (v) => setState(() => _down = v),
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  prefixIcon: AnimatedRotation(
+                    turns: on ? 0.25 : 0,
+                    duration: ms,
+                    child: Icon(Icons.tune_rounded, color: on ? BearchColors.accent : null),
+                  ),
+                  suffixIcon: const Icon(Icons.search_rounded),
+                  isDense: true,
+                ),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  layoutBuilder: (cur, prev) => Stack(alignment: Alignment.centerLeft, children: [...prev, ?cur]),
+                  transitionBuilder: (c, a) => FadeTransition(
+                    opacity: a,
+                    child: SlideTransition(position: Tween(begin: const Offset(0, 0.3), end: Offset.zero).animate(a), child: c),
+                  ),
+                  child: Text(
+                    '${competitionCategories[f.category]} · ${browseSorts[f.sort]}',
+                    key: ValueKey(f),
+                    style: t.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
             ),
           ),
         ),
       ),
-      if (filtered) IconButton(tooltip: 'Clear category', onPressed: onClear, icon: const Icon(Icons.close_rounded)),
+      if (f.category != 'all') IconButton(tooltip: 'Clear category', onPressed: widget.onClear, icon: const Icon(Icons.close_rounded)),
     ]);
   }
 }
