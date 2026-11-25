@@ -43,6 +43,26 @@ void main() {
     expect(find.text('rpc admin_dashboard_stats'), findsOneWidget);
   });
 
+  testWidgets('Android back closes drawer, then returns home from other pages', (tester) async {
+    await tester.pumpWidget(const ProviderScope(child: BearchApp()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('MY TEAM'), findsNothing); // drawer closed, app still up
+    expect(find.text('UPH STACK Hackathon 2026'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Invites'));
+    await tester.pumpAndSettle();
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('UPH STACK Hackathon 2026'), findsOneWidget); // back on Browse
+  });
+
   test('navItemFor resolves nested paths', () {
     expect(navItemFor('/admin/reports')?.label, 'Reports & Appeals');
     expect(navItemFor('/admin')?.label, 'Dashboard');

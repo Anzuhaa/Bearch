@@ -127,7 +127,8 @@ class InitialsAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    // Only words that start with a letter: "Satria (Demo)" -> "S", not "S(".
+    final parts = name.trim().split(RegExp(r'\s+')).where((p) => RegExp(r'^\p{L}', unicode: true).hasMatch(p)).toList();
     final initials = parts.isEmpty
         ? '?'
         : (parts.first[0] + (parts.length > 1 ? parts[1][0] : '')).toUpperCase();

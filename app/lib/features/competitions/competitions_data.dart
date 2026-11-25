@@ -106,6 +106,6 @@ final competitionsProvider = FutureProvider<List<CompetitionSummary>>((ref) asyn
       .select('id, name, organizer, category, level, registration_deadline, team_min, team_max, teams(count)')
       .eq('status', 'approved')
       .gte('registration_deadline', today)
-      .order('registration_deadline');
+      .order('registration_deadline', ascending: true); // closest deadline first
   return rows.map(CompetitionSummary.fromJson).toList();
 });

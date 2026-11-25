@@ -116,23 +116,13 @@ class _CompetitionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
             children: [
-              Expanded(
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
-                  children: [
-                    Pill(cap(c.level), color: BearchColors.purple),
-                    const Pill('Verified', color: BearchColors.success, icon: Icons.verified_rounded),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(cap(c.category), style: t.labelSmall, overflow: TextOverflow.ellipsis),
-              ),
+              Pill(cap(c.level), color: BearchColors.purple),
+              const Pill('Verified', color: BearchColors.success, icon: Icons.verified_rounded),
+              Pill(cap(c.category), color: BearchColors.accent),
             ],
           ),
           const SizedBox(height: 10),
@@ -146,7 +136,7 @@ class _CompetitionCard extends StatelessWidget {
             children: [
               _Meta(Icons.event_rounded, 'Reg. closes $deadline'),
               _Meta(Icons.group_outlined, size),
-              _Meta(Icons.meeting_room_outlined, '${c.lobbyCount} open lobbies'),
+              _Meta(Icons.meeting_room_outlined, '${c.lobbyCount} open ${c.lobbyCount == 1 ? 'lobby' : 'lobbies'}'),
             ],
           ),
         ],
