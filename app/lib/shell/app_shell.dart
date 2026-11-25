@@ -8,6 +8,7 @@ import '../core/glass.dart';
 import '../core/session.dart';
 import '../core/theme.dart';
 import '../core/theme_mode.dart';
+import '../features/notifications/notifications_sheet.dart';
 import 'bearch_drawer.dart';
 import 'nav_items.dart';
 
@@ -55,11 +56,7 @@ class _AppShellState extends ConsumerState<AppShell> {
             title: Text(item?.label ?? 'Bearch'),
             actions: [
               const ThemeToggleButton(),
-              IconButton(
-                tooltip: 'Notifications',
-                onPressed: () {},
-                icon: const Icon(Icons.notifications_none_rounded),
-              ),
+              const NotificationBell(),
             ],
           ),
           drawer: BearchDrawer(location: widget.location),

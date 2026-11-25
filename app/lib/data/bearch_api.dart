@@ -145,6 +145,19 @@ class BearchApi {
         'p_comment': comment,
       });
 
+  Future<int?> sepEstimate(String teamId, String placement) async =>
+      (await _db.rpc('sep_estimate', params: {'p_team': teamId, 'p_placement': placement}) as num?)?.toInt();
+
+  /// Winning-result upload. Storage RLS blocks it until you rated every teammate.
+  Future<String> uploadSepProof(String teamId, String fileName, List<int> bytes) async {
+    final path = '$teamId/${DateTime.now().millisecondsSinceEpoch}-$fileName';
+    await _db.storage.from('sep-proofs').uploadBinary(path, Uint8List.fromList(bytes));
+    return path;
+  }
+
+  Future<void> attachSepFile(String claimId, String path, String fileName, int size) =>
+      _db.from('sep_claim_files').insert({'claim_id': claimId, 'storage_path': path, 'file_name': fileName, 'size_bytes': size});
+
   Future<List<String>> sepClaimBlockers(String teamId) async =>
       ((await _db.rpc('sep_claim_blockers', params: {'p_team': teamId})) as List).cast<String>();
 

@@ -133,6 +133,39 @@ for (const a of ACCOUNTS) {
   console.log(`✓ ${a.email} (${a.role ?? 'student'})`);
 }
 
+// --reset: wipe everything the demo flow creates (demo users' teams cascade to
+// members, requests, invites, chat, ratings, reports, SEP claims), plus their
+// submitted competitions and notifications. Never touches non-demo rows.
+if (process.argv.includes('--reset')) {
+  const demoIds = Object.values(ids).join(',');
+  await rest('DELETE', `teams?leader_id=in.(${demoIds})`);
+  await rest('DELETE', `competitions?submitted_by=in.(${demoIds})`);
+  await rest('DELETE', `notifications?profile_id=in.(${demoIds})`);
+  await rest('PATCH', `profiles?id=in.(${demoIds})`, { reputation: null, rating_count: 0 });
+  await rest('PATCH', `profile_skills?profile_id=in.(${demoIds})`, { peer_level: null, peer_count: 0 });
+  console.log('✓ demo state reset');
+}
+
+// 5. A finished competition team (Hology 8.0, 2025) so rating, result upload,
+//    SEP claim and reports can be demoed today. Locked with 3 members.
+const [past] = await rest('GET', `competitions?select=id&name=eq.${encodeURIComponent('Hology 8.0 UI/UX Design Sprint')}`);
+if (past) {
+  const [s, r, m] = ['satria', 'rizki', 'samuel'].map((n) => ids[`${n}@bearch.test`]);
+  const [existing] = await rest('GET', `team_members?select=team_id&competition_id=eq.${past.id}&profile_id=eq.${s}`);
+  if (!existing) {
+    const [team] = await rest('POST', 'teams', {
+      competition_id: past.id, leader_id: s, name: 'Pitch Perfect (Demo)', pitch: 'Finished team for rating & SEP demo.', max_members: 3,
+    }, 'return=representation');
+    await rest('POST', 'team_members', [
+      { team_id: team.id, profile_id: s, competition_id: past.id, is_leader: true, role_label: 'Leader' },
+      { team_id: team.id, profile_id: r, competition_id: past.id, is_leader: false, role_label: 'Data Analyst' },
+      { team_id: team.id, profile_id: m, competition_id: past.id, is_leader: false, role_label: 'UI/UX Designer' },
+    ]);
+    await rest('PATCH', `teams?id=eq.${team.id}`, { status: 'locked', locked_at: new Date().toISOString(), lock_reason: 'manual' });
+    console.log('✓ finished team "Pitch Perfect (Demo)" on Hology 8.0 (locked, ready to rate)');
+  }
+}
+
 // 4. A demo lobby on UPH STACK 2026: Satria leads, no required skills set,
 //    so "Recommended teammates" exercises the AI inference path.
 const [stack] = await rest('GET', `competitions?select=id,team_max&name=eq.${encodeURIComponent('UPH STACK Hackathon 2026')}`);

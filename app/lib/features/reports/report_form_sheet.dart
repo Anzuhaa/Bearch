@@ -1,0 +1,134 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/async_ui.dart';
+import '../../core/session.dart';
+import '../../data/bearch_api.dart';
+import '../lobbies/lobby_models.dart';
+import '../lobbies/lobby_providers.dart';
+import 'reports_screen.dart' show reasonLabel;
+
+const _reasons = ['non_contribution', 'missed_deadlines', 'no_show', 'disrespectful', 'other'];
+
+/// Figma 18 · Report a member. Returns true when filed.
+Future<bool?> showReportSheet(BuildContext context) => showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => const _ReportSheet(),
+    );
+
+class _ReportSheet extends ConsumerStatefulWidget {
+  const _ReportSheet();
+
+  @override
+  ConsumerState<_ReportSheet> createState() => _ReportSheetState();
+}
+
+class _ReportSheetState extends ConsumerState<_ReportSheet> {
+  TeamView? _team;
+  String? _member;
+  String _reason = 'non_contribution';
+  final _facts = TextEditingController();
+  final _evidence = TextEditingController();
+  final _link = TextEditingController();
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    for (final c in [_facts, _evidence, _link]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  bool get _valid =>
+      _team != null && _member != null && _facts.text.trim().length >= 20 && _evidence.text.trim().isNotEmpty;
+
+  Future<void> _submit(BearchApi api) async {
+    setState(() => _busy = true);
+    final ok = await runAction(
+      context,
+      () => api.fileReport(
+        teamId: _team!.id,
+        reportedId: _member!,
+        reason: _reason,
+        description: _facts.text.trim(),
+        evidence: [
+          {'label': _evidence.text.trim(), if (_link.text.trim().isNotEmpty) 'external_url': _link.text.trim()},
+        ],
+      ),
+      success: 'Report filed. The member has 7 days to appeal.',
+    );
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (ok) Navigator.pop(context, true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final api = ref.watch(bearchApiProvider);
+    final me = ref.watch(supabaseProvider)?.auth.currentUser?.id;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + MediaQuery.viewInsetsOf(context).bottom),
+      child: SingleChildScrollView(
+        child: AsyncView<List<TeamView>>(
+          value: ref.watch(myTeamsProvider),
+          data: (teams) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text('Report a member', style: t.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            Text('Reports must be backed by concrete facts. False reports lower your own reputation.', style: t.bodySmall),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _team?.id,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Team & competition'),
+              items: [for (final tm in teams) DropdownMenuItem(value: tm.id, child: Text('${tm.name} · ${tm.competitionName}', overflow: TextOverflow.ellipsis))],
+              onChanged: (id) => setState(() {
+                _team = teams.firstWhere((tm) => tm.id == id);
+                _member = null;
+              }),
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              key: ValueKey(_team?.id),
+              initialValue: _member,
+              decoration: const InputDecoration(labelText: 'Member'),
+              items: [
+                for (final m in _team?.members.where((m) => m.profileId != me) ?? const <MemberView>[])
+                  DropdownMenuItem(value: m.profileId, child: Text(m.fullName)),
+              ],
+              onChanged: (v) => setState(() => _member = v),
+            ),
+            const SizedBox(height: 10),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final r in _reasons)
+                ChoiceChip(label: Text(reasonLabel(r)), selected: _reason == r, onSelected: (_) => setState(() => _reason = r)),
+            ]),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _facts,
+              minLines: 3,
+              maxLines: 6,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(labelText: 'What happened? (facts, dates)', helperText: 'At least 20 characters'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _evidence,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(labelText: 'Evidence (required)', hintText: 'e.g. Team chat excerpts 2–12 Nov'),
+            ),
+            const SizedBox(height: 10),
+            TextField(controller: _link, decoration: const InputDecoration(labelText: 'Evidence link (optional)')),
+            const SizedBox(height: 14),
+            FilledButton(
+              onPressed: api == null || !_valid || _busy ? null : () => _submit(api),
+              child: Text(_busy ? 'Submitting…' : 'Submit report'),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}

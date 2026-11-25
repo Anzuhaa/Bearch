@@ -8,6 +8,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/session.dart';
 import 'features/admin/admin_dashboard_screen.dart';
 import 'features/admin/competition_queue_screen.dart';
+import 'features/admin/reports_review_screen.dart';
+import 'features/admin/sep_claims_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/verify_otp_screen.dart';
 import 'features/competitions/browse_screen.dart';
@@ -17,7 +19,11 @@ import 'features/invites/invites_screen.dart';
 import 'features/lobbies/lobby_screen.dart';
 import 'features/lobbies/my_lobbies_screen.dart';
 import 'features/lobbies/recommendations_screen.dart';
-import 'features/placeholder_screen.dart';
+import 'features/profile/profile_screen.dart';
+import 'features/reports/reports_screen.dart';
+import 'features/team/rate_claim_screen.dart';
+import 'features/team/team_calendar_screen.dart';
+import 'features/team/team_chat_screen.dart';
 import 'shell/app_shell.dart';
 import 'shell/home_redirect.dart';
 import 'shell/nav_items.dart';
@@ -39,8 +45,7 @@ class _AuthRefresh extends ChangeNotifier {
   }
 }
 
-/// Drawer destinations that are built. Everything else in nav_items.dart still
-/// renders its "To build" placeholder.
+/// Screen for each drawer destination in nav_items.dart.
 final Map<String, Widget Function()> _builtScreens = {
   '/browse': () => const BrowseScreen(),
   '/submit': () => const SubmitCompetitionScreen(),
@@ -48,6 +53,12 @@ final Map<String, Widget Function()> _builtScreens = {
   '/invites': () => const InvitesScreen(),
   '/admin': () => const AdminDashboardScreen(),
   '/admin/competitions': () => const CompetitionQueueScreen(),
+  '/admin/reports': () => const ReportsReviewScreen(),
+  '/admin/sep': () => const SepClaimsScreen(),
+  '/team/chat': () => const TeamChatScreen(),
+  '/team/calendar': () => const TeamCalendarScreen(),
+  '/team/rate': () => const RateClaimScreen(),
+  '/reports': () => const ReportsScreen(),
 };
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -74,7 +85,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => VerifyOtpScreen(email: state.uri.queryParameters['email'] ?? ''),
       ),
       GoRoute(path: '/home', builder: (context, state) => const HomeRedirect()),
-      GoRoute(path: '/onboarding', builder: (context, state) => const PlaceholderScreen(item: onboardingItem)),
+      GoRoute(path: '/onboarding', builder: (context, state) => const ProfileScreen()),
       // Full-screen detail pages (pushed on top of the drawer shell).
       GoRoute(
         path: '/competition/:id',
@@ -96,7 +107,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           for (final item in allNavItems)
             GoRoute(
               path: item.path,
-              builder: (context, state) => _builtScreens[item.path]?.call() ?? PlaceholderScreen(item: item),
+              builder: (context, state) => _builtScreens[item.path]!(),
             ),
         ],
       ),

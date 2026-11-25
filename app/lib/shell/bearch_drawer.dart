@@ -106,6 +106,13 @@ class BearchDrawer extends ConsumerWidget {
                     padding: const EdgeInsets.all(12),
                     child: GlassCard(
                       padding: const EdgeInsets.all(12),
+                      // Students: tap to edit the skill profile.
+                      onTap: role == UserRole.student && Env.isConfigured
+                          ? () {
+                              Navigator.of(context).pop();
+                              context.push('/onboarding');
+                            }
+                          : null,
                       child: Row(
                         children: [
                           InitialsAvatar(profile?.fullName ?? '?', size: 36),

@@ -158,6 +158,14 @@ await expectErr('no member replacement', () => q(`insert into team_members(team_
 await expectErr('no member removal', () => q(`delete from team_members where team_id=$1 and profile_id=$2`, [team, rizki]), 'Team is locked');
 await as(nadia, () => expectErr('request to locked team refused', () => q(`select public.request_join($1)`, [team]), 'locked'));
 
+console.log('Heatmap');
+await as(satria, async () => {
+  const cells = await q(`select weekday, slot_start::text s, free_count from public.team_availability_heatmap($1)`, [team]);
+  const at = (d, s) => cells.find((c) => c.weekday === d && c.s === s)?.free_count;
+  ok('heatmap counts Tue 19:00 as free', at(2, '19:00:00') >= 1, at(2, '19:00:00'));
+  ok('heatmap 23:00 not free for a slot ending 22:00 (no midnight wrap)', at(2, '23:00:00') === 0, at(2, '23:00:00'));
+});
+
 console.log('Auto-lock + warnings');
 const soon = (await one(`insert into competitions(name, organizer, category, level, registration_deadline, team_max, status) values ('Past Lock Comp','Org','business','campus', public.today_wib(), 3, 'approved') returning id`)).id;
 const t2 = (await one(`insert into teams(competition_id, leader_id, name, max_members) values ($1,$2,'Late Team',3) returning id`, [soon, samuel])).id;

@@ -145,15 +145,6 @@ const adminNav = [
   NavSection('Discover', [browseItem]),
 ];
 
-const onboardingItem = NavItem(
-  path: '/onboarding',
-  label: 'Set Up Skill Profile',
-  icon: Icons.person_outline_rounded,
-  figma: ['03 · Set Up Skill Profile'],
-  plan: ['Faculty/program + batch', 'Hard skills with level, soft skills', 'Availability'],
-  backend: ['update profiles', 'profile_skills', 'availability_slots'],
-);
-
 List<NavItem> get allNavItems => {
       for (final s in [...studentNav, ...adminNav]) ...s.items,
     }.toList();
