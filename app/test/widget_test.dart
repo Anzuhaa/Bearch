@@ -36,7 +36,8 @@ void main() {
     await tester.tap(find.byTooltip('Open navigation menu'));
     await tester.pumpAndSettle();
     expect(find.text('MY TEAM', skipOffstage: false), findsOneWidget);
-    expect(find.text('Rate & Claim SEP', skipOffstage: false), findsOneWidget);
+    expect(find.text('My Teams', skipOffstage: false), findsOneWidget);
+    expect(find.text('Team Chat', skipOffstage: false), findsNothing); // moved into the team hub
 
     await tester.tap(find.text('Preview as admin'));
     await tester.pumpAndSettle();
@@ -79,7 +80,7 @@ void main() {
   test('navItemFor resolves nested paths', () {
     expect(navItemFor('/admin/reports')?.label, 'Reports & Appeals');
     expect(navItemFor('/admin')?.label, 'Dashboard');
-    expect(navItemFor('/team/chat')?.label, 'Team Chat');
+    expect(navItemFor('/teams')?.label, 'My Teams');
     expect(navItemFor('/browse/abc')?.label, 'Browse Competitions');
   });
 

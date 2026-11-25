@@ -8,7 +8,7 @@ import '../../core/session.dart';
 import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 import '../lobbies/lobby_models.dart';
-import 'team_picker.dart';
+import 'team_page.dart';
 
 typedef ChatMessage = ({String id, String? senderId, String body, bool isSystem, DateTime at});
 
@@ -32,24 +32,26 @@ final teamMessagesProvider = StreamProvider.autoDispose.family<List<ChatMessage>
           ]);
 });
 
-/// Figma 11 · Team Chat.
-class TeamChatScreen extends StatelessWidget {
-  const TeamChatScreen({super.key});
+/// Figma 11 · Team Chat (one team, opened from the team hub).
+class TeamChatPage extends StatelessWidget {
+  const TeamChatPage({super.key, required this.teamId});
+
+  final String teamId;
 
   @override
-  Widget build(BuildContext context) => TeamScope(builder: (team) => _Chat(team: team));
+  Widget build(BuildContext context) => TeamPage(teamId: teamId, title: 'Chat', builder: (team) => TeamChatView(team: team));
 }
 
-class _Chat extends ConsumerStatefulWidget {
-  const _Chat({required this.team});
+class TeamChatView extends ConsumerStatefulWidget {
+  const TeamChatView({super.key, required this.team});
 
   final TeamView team;
 
   @override
-  ConsumerState<_Chat> createState() => _ChatState();
+  ConsumerState<TeamChatView> createState() => _ChatState();
 }
 
-class _ChatState extends ConsumerState<_Chat> {
+class _ChatState extends ConsumerState<TeamChatView> {
   final _input = TextEditingController();
   bool _sending = false;
 

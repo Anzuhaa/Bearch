@@ -45,23 +45,6 @@ const studentNav = [
       backend: ['insert competitions (draft)', 'fn check-duplicate', 'rpc submit_competition'],
     ),
     NavItem(
-      path: '/lobbies',
-      label: 'My Lobbies',
-      icon: Icons.groups_rounded,
-      figma: ['06 · Lobby · Manage Broadcast', '07 · AI Teammate Recommendations', '08 · Find Teammates', '09 · Team Locked'],
-      plan: [
-        'Team slots, join requests (approve/decline), team balance check',
-        'H-3 / H-2 banner: auto-locks H-1 23:59 WIB even if not full',
-        '"Lock team now" (no unlock; pending requests get auto-rejected)',
-        'AI recommendations with "Why" reasons; fallback "Skill yang dibutuhkan belum diatur"',
-        'Direct invite modal (slot reserved 48h)',
-      ],
-      backend: [
-        'rpc create_team / decide_join_request / send_invite / lock_team',
-        'fn infer-skills + rpc recommend_candidates',
-      ],
-    ),
-    NavItem(
       path: '/invites',
       label: 'Invites',
       icon: Icons.mail_outline_rounded,
@@ -71,31 +54,11 @@ const studentNav = [
   ]),
   NavSection('My Team', [
     NavItem(
-      path: '/team/chat',
-      label: 'Team Chat',
-      icon: Icons.chat_bubble_outline_rounded,
-      figma: ['11 · Team Chat'],
-      plan: ['Realtime messages + attachments', 'Pinned meeting', 'Team info side sheet'],
-      backend: ['realtime messages', 'storage chat-attachments/<team_id>/', 'team_meetings'],
-    ),
-    NavItem(
-      path: '/team/calendar',
-      label: 'Team Calendar',
-      icon: Icons.calendar_month_rounded,
-      figma: ['10 · Team Calendar · Shared Availability'],
-      plan: ['Weekly heatmap of free members', 'Best slots this week', 'Edit my availability'],
-      backend: ['rpc team_availability_heatmap', 'availability_slots'],
-    ),
-    NavItem(
-      path: '/team/rate',
-      label: 'Rate & Claim SEP',
-      icon: Icons.workspace_premium_outlined,
-      figma: ['12 · Rate Teammates', '13 · Upload Result · SEP Claim', '14 · SEP Claim Submitted'],
-      plan: [
-        'Rate each teammate: hard-skill tiers + soft-skill stars (one reputation score)',
-        'Unlock checklist, upload certificate, SEP estimate',
-      ],
-      backend: ['rpc my_rating_progress / submit_rating', 'rpc sep_claim_blockers / submit_sep_claim'],
+      path: '/teams',
+      label: 'My Teams',
+      icon: Icons.groups_rounded,
+      figma: ['06 Lobby', '09 Team Locked', '10 Team Calendar', '11 Team Chat', '12 Rate', '13 SEP'],
+      plan: ['Pick a team, then open its hub: lobby & members, chat, calendar, rate & SEP, report'],
     ),
     NavItem(
       path: '/reports',

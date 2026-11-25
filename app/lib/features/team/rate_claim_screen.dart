@@ -8,22 +8,20 @@ import '../../core/theme.dart';
 import '../lobbies/lobby_models.dart';
 import 'rating_sheet.dart';
 import 'sep_claim_section.dart';
-import 'team_picker.dart';
+import 'team_page.dart';
 
 final canRateProvider = FutureProvider.autoDispose.family<bool, String>(
   (ref, teamId) async => await ref.watch(supabaseProvider)!.rpc('can_rate_team', params: {'p_team': teamId}) as bool,
 );
 
-/// Drawer: Rate & Claim SEP (locked teams only).
-class RateClaimScreen extends StatelessWidget {
-  const RateClaimScreen({super.key});
+/// Rate teammates & claim SEP for one locked team (opened from the team hub).
+class RateClaimPage extends StatelessWidget {
+  const RateClaimPage({super.key, required this.teamId});
+
+  final String teamId;
 
   @override
-  Widget build(BuildContext context) => TeamScope(
-        filter: (t) => t.isLocked,
-        emptyMessage: 'Rating and SEP claims open for locked teams after the competition.',
-        builder: (team) => _RateClaim(team: team),
-      );
+  Widget build(BuildContext context) => TeamPage(teamId: teamId, title: 'Rate & SEP', builder: (team) => _RateClaim(team: team));
 }
 
 class _RateClaim extends ConsumerWidget {
@@ -90,7 +88,7 @@ class _RateClaim extends ConsumerWidget {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
-                    child: Text('Didn\'t contribute? File a report from Reports & Appeals instead.', style: t.bodySmall),
+                    child: Text('Didn\'t contribute? Use "Report a member" in the team hub instead.', style: t.bodySmall),
                   ),
                   const SectionLabel('2 · Upload result · 3 · SEP claim'),
                   SepClaimSection(teamId: team.id),

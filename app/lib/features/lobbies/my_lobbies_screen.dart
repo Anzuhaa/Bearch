@@ -39,7 +39,7 @@ class MyLobbiesScreen extends ConsumerWidget {
                       TeamCard(
                         team: team,
                         subtitle: '${team.competitionName} · ${team.leaderId == me ? 'You lead' : 'Member'}',
-                        onTap: () => context.push('/lobby/${team.id}'),
+                        onTap: () => context.push('/team/${team.id}'),
                         action: const Icon(Icons.chevron_right_rounded),
                       ),
                       const SizedBox(height: 12),

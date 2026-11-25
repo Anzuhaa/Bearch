@@ -24,6 +24,7 @@ import 'features/reports/reports_screen.dart';
 import 'features/team/rate_claim_screen.dart';
 import 'features/team/team_calendar_screen.dart';
 import 'features/team/team_chat_screen.dart';
+import 'features/team/team_hub_screen.dart';
 import 'shell/app_shell.dart';
 import 'shell/home_redirect.dart';
 import 'shell/nav_items.dart';
@@ -49,15 +50,12 @@ class _AuthRefresh extends ChangeNotifier {
 final Map<String, Widget Function()> _builtScreens = {
   '/browse': () => const BrowseScreen(),
   '/submit': () => const SubmitCompetitionScreen(),
-  '/lobbies': () => const MyLobbiesScreen(),
+  '/teams': () => const MyLobbiesScreen(),
   '/invites': () => const InvitesScreen(),
   '/admin': () => const AdminDashboardScreen(),
   '/admin/competitions': () => const CompetitionQueueScreen(),
   '/admin/reports': () => const ReportsReviewScreen(),
   '/admin/sep': () => const SepClaimsScreen(),
-  '/team/chat': () => const TeamChatScreen(),
-  '/team/calendar': () => const TeamCalendarScreen(),
-  '/team/rate': () => const RateClaimScreen(),
   '/reports': () => const ReportsScreen(),
 };
 
@@ -99,6 +97,15 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'recommend',
             builder: (context, state) => RecommendationsScreen(teamId: state.pathParameters['id']!),
           ),
+        ],
+      ),
+      GoRoute(
+        path: '/team/:id',
+        builder: (context, state) => TeamHubScreen(teamId: state.pathParameters['id']!),
+        routes: [
+          GoRoute(path: 'chat', builder: (context, state) => TeamChatPage(teamId: state.pathParameters['id']!)),
+          GoRoute(path: 'calendar', builder: (context, state) => TeamCalendarPage(teamId: state.pathParameters['id']!)),
+          GoRoute(path: 'rate', builder: (context, state) => RateClaimPage(teamId: state.pathParameters['id']!)),
         ],
       ),
       ShellRoute(

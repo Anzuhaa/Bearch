@@ -8,7 +8,7 @@ import '../../core/skeleton.dart';
 import '../../core/theme.dart';
 import '../lobbies/lobby_models.dart';
 import 'availability_sheet.dart';
-import 'team_picker.dart';
+import 'team_page.dart';
 
 typedef HeatCell = ({int weekday, int hour, int free, int members});
 
@@ -28,11 +28,13 @@ final heatmapProvider = FutureProvider.autoDispose.family<List<HeatCell>, String
 const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 /// Figma 10 · Team Calendar · Shared Availability.
-class TeamCalendarScreen extends StatelessWidget {
-  const TeamCalendarScreen({super.key});
+class TeamCalendarPage extends StatelessWidget {
+  const TeamCalendarPage({super.key, required this.teamId});
+
+  final String teamId;
 
   @override
-  Widget build(BuildContext context) => TeamScope(builder: (team) => _Calendar(team: team));
+  Widget build(BuildContext context) => TeamPage(teamId: teamId, title: 'Calendar', builder: (team) => _Calendar(team: team));
 }
 
 class _Calendar extends ConsumerWidget {

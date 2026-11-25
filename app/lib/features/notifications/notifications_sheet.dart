@@ -48,10 +48,10 @@ final unreadCountProvider = Provider.autoDispose<int>(
 /// Where a notification should take you.
 String? _routeFor(AppNotification n) {
   final d = n.data;
-  if (d['team_id'] != null && !n.kind.contains('disbanded')) return '/lobby/${d['team_id']}';
+  if (d['team_id'] != null && !n.kind.contains('disbanded')) return '/team/${d['team_id']}';
   if (d['invite_id'] != null) return '/invites';
   if (d['report_id'] != null) return '/reports';
-  if (d['claim_id'] != null) return '/team/rate';
+  if (d['claim_id'] != null) return '/teams';
   if (n.kind.startsWith('competition_')) return n.kind == 'competition_submitted' ? '/admin/competitions' : '/submit';
   return null;
 }
@@ -138,7 +138,7 @@ class _NotificationsSheet extends ConsumerWidget {
                             Navigator.pop(context);
                             // Detail pages stack on top; drawer destinations replace (keeps shell title right).
                             if (route == null) return;
-                            route.startsWith('/lobby/') ? context.push(route) : context.go(route);
+                            route.startsWith('/team/') ? context.push(route) : context.go(route);
                           },
                         );
                       },

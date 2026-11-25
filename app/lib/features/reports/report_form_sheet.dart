@@ -11,15 +11,17 @@ import 'reports_screen.dart' show reasonLabel;
 const _reasons = ['non_contribution', 'missed_deadlines', 'no_show', 'disrespectful', 'other'];
 
 /// Figma 18 · Report a member. Returns true when filed.
-Future<bool?> showReportSheet(BuildContext context) => showModalBottomSheet<bool>(
+Future<bool?> showReportSheet(BuildContext context, {String? teamId}) => showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (_) => const _ReportSheet(),
+      builder: (_) => _ReportSheet(initialTeamId: teamId),
     );
 
 class _ReportSheet extends ConsumerStatefulWidget {
-  const _ReportSheet();
+  const _ReportSheet({this.initialTeamId});
+
+  final String? initialTeamId;
 
   @override
   ConsumerState<_ReportSheet> createState() => _ReportSheetState();
@@ -75,7 +77,10 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
       child: SingleChildScrollView(
         child: AsyncView<List<TeamView>>(
           value: ref.watch(myTeamsProvider),
-          data: (teams) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          data: (teams) {
+            // Opened from a team hub: preselect that team.
+            _team ??= teams.where((tm) => tm.id == widget.initialTeamId).firstOrNull;
+            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Text('Report a member', style: t.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
             Text('Reports must be backed by concrete facts. False reports lower your own reputation.', style: t.bodySmall),
             const SizedBox(height: 12),
@@ -126,7 +131,8 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
               onPressed: api == null || !_valid || _busy ? null : () => _submit(api),
               child: Text(_busy ? 'Submitting…' : 'Submit report'),
             ),
-          ]),
+          ]);
+          },
         ),
       ),
     );
