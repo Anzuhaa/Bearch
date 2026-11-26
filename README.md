@@ -2,7 +2,7 @@
 
 Teammate matchmaking for UPH students: verified competitions, approval-based lobbies,
 AI-assisted cross-major matching, shared team calendars, peer reputation and SEP claims.
-Built by **Bear Invasion** for UPH STACK Hackathon 2026.
+Built by **Bear Invasion** for the GDGoC ITB hackathon.
 
 ```
 app/                Flutter app (Android + iOS). Students and Student Affairs admins.
