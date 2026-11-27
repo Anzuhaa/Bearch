@@ -56,6 +56,7 @@ class _Body extends ConsumerWidget {
     final teams = ref.watch(competitionTeamsProvider(c.id));
     final myRequests = ref.watch(myRequestsProvider).value ?? const <JoinRequestView>[];
     final lockPassed = daysUntil(c.deadline) < 1;
+    final isAdmin = ref.watch(roleProvider) == UserRole.admin;
     String cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1).replaceAll('_', ' ');
 
     return ListView(
@@ -109,7 +110,9 @@ class _Body extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SectionLabel('Lobbies · ${list.length}'),
-                if (mine == null && !lockPassed)
+                if (isAdmin)
+                  const _AdminViewOnly()
+                else if (mine == null && !lockPassed)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: FilledButton.icon(
@@ -131,8 +134,8 @@ class _Body extends ConsumerWidget {
                 for (final (i, team) in list.indexed) ...[
                   Entrance(index: i, child: TeamCard(
                     team: team,
-                    onTap: team.hasMember(me) ? () => context.push('/lobby/${team.id}') : null,
-                    action: _teamAction(context, ref, team, mine, myRequests),
+                    onTap: team.hasMember(me) || isAdmin ? () => context.push('/lobby/${team.id}') : null,
+                    action: isAdmin ? null : _teamAction(context, ref, team, mine, myRequests),
                   )),
                   const SizedBox(height: 12),
                 ],
@@ -169,6 +172,26 @@ class _Body extends ConsumerWidget {
       child: const Text('Request to join'),
     );
   }
+}
+
+/// Student Affairs can inspect every lobby but never create or join one.
+class _AdminViewOnly extends StatelessWidget {
+  const _AdminViewOnly();
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: GlassCard(
+          child: Row(children: [
+            const Icon(Icons.visibility_outlined, color: BearchColors.accent),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text('Admin view · tap a lobby to see its details. Admins can\'t open or join lobbies.',
+                  style: Theme.of(context).textTheme.bodySmall),
+            ),
+          ]),
+        ),
+      );
 }
 
 class _Fact extends StatelessWidget {

@@ -254,6 +254,13 @@ ok('stats computed', stats.sep_credited === 200);
 await as(rizki, () => expectErr('students cannot read stats', () => q(`select public.admin_dashboard_stats()`), 'Admins only'));
 await as(rizki, () => expectErr('internal fn not callable', () => q(`select public.lock_team_internal($1,'manual')`, [team]), 'permission denied'));
 
+console.log('Admin is view-only');
+const nadiaTeam = (await one(`select id from teams where name='Nadia Team'`)).id;
+await as(admin, () => expectErr('admin cannot create team', () => q(`select public.create_team($1,'Admin Team')`, [h3]), 'Admins can view'));
+await as(admin, () => expectErr('admin cannot request join', () => q(`select public.request_join($1)`, [nadiaTeam]), 'Admins can view'));
+await as(nadia, () => expectErr('admin cannot be invited', () => q(`select public.send_invite($1,$2)`, [nadiaTeam, admin]), 'Student not found'));
+ok('admin left no team rows', (await one(`select count(*)::int c from teams where name='Admin Team'`)).c === 0);
+
 console.log('Storage');
 await as(rizki, async () => {
   await expectErr('cannot upload to other team chat', () => q(`insert into storage.objects(bucket_id, name) values ('chat-attachments', $1 || '/x.png')`, [t2]), 'row-level security');

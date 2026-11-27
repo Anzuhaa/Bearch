@@ -13,6 +13,7 @@ import 'lobby_providers.dart';
 import 'lobby_sections.dart';
 import 'lobby_widgets.dart';
 import 'skills_picker_sheet.dart';
+import 'team_size_sheet.dart';
 
 /// Figma 06 · Lobby · Manage Broadcast (+ 09 Team Locked when locked).
 class LobbyScreen extends ConsumerWidget {
@@ -119,7 +120,17 @@ class _LobbyBody extends ConsumerWidget {
                   },
           ),
         ],
-        SectionLabel('Team · ${team.members.length}/${team.maxMembers}'),
+        SectionLabel(
+          'Team · ${team.members.length}/${team.maxMembers}',
+          trailing: isLeader && open && api != null
+              ? TextButton(
+                  onPressed: () async {
+                    if (await showTeamSizeSheet(context, team)) _refresh(ref);
+                  },
+                  child: const Text('Edit size'),
+                )
+              : null,
+        ),
         GlassCard(
           child: Column(children: [
             for (final m in team.members) MemberTile(m),
@@ -155,7 +166,7 @@ class _LobbyBody extends ConsumerWidget {
           PendingInvitesSection(team: team, onChanged: () => _refresh(ref)),
         ],
         const SizedBox(height: 20),
-        if (open && api != null)
+        if (open && api != null && team.hasMember(me))
           TextButton.icon(
             style: TextButton.styleFrom(foregroundColor: BearchColors.danger),
             icon: Icon(isLeader ? Icons.delete_outline_rounded : Icons.logout_rounded),

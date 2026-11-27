@@ -69,6 +69,10 @@ class BearchApi {
   Future<void> cancelInvite(String inviteId) => _db.rpc('cancel_invite', params: {'p_invite': inviteId});
 
   /// Leader-only (RLS): replace the skills the lobby still needs.
+  /// Leader only, open lobby; DB guard keeps it within members..competition max.
+  Future<void> setTeamSize(String teamId, int maxMembers) =>
+      _db.from('teams').update({'max_members': maxMembers}).eq('id', teamId);
+
   Future<void> setRequiredSkills(String teamId, Iterable<String> skillIds) async {
     await _db.from('team_required_skills').delete().eq('team_id', teamId);
     final rows = [for (final id in skillIds) {'team_id': teamId, 'skill_id': id}];
